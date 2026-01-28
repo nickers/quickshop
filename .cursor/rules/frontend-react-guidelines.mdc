@@ -1,0 +1,47 @@
+---
+description: Frontend guidelines for React, React Router, and TanStack Query
+globs: "**/*.{ts,tsx,js,jsx}"
+alwaysApply: false
+---
+
+# Frontend: React guidelines
+
+## React coding standards
+
+- Prefer **functional components + hooks** over class components.
+- Use `React.memo()` for **expensive components** that often re-render with the same props (measure first; don’t blanket-memo everything).
+- Use `React.lazy()` + `<Suspense>` for **code-splitting** and performance optimization.
+- Use `useCallback` for **event handlers passed to child components** to reduce avoidable re-renders.
+- Prefer `useMemo` for **expensive computations** to avoid recomputation on every render.
+- Use `useId()` to generate **stable unique IDs** for accessibility attributes (`aria-*`, `htmlFor`, etc.).
+- In React 19+ projects, use the new `use()` hook for supported **data fetching / resource unwrapping** patterns.
+- If using Next.js (or a similar framework), leverage **Server Components** for data-fetching-heavy components (when applicable).
+- Consider `useOptimistic` for **optimistic UI** in forms and user-driven mutations.
+- Use `useTransition` for **non-urgent state updates** to keep the UI responsive.
+
+## React Router (data routers)
+
+- Prefer `createBrowserRouter` (data router) over `BrowserRouter` for better **data loading** and **error handling**.
+- Implement **route-level lazy loading**:
+  - Use `React.lazy()` for route components to improve initial load time.
+  - Prefer `route.lazy()` when available for route-level code splitting with automatic loading states.
+- Use `useNavigate()` for **programmatic navigation** (avoid passing around `navigate` props).
+- Use **route `loader`** functions for data fetching and **route `action`** functions for mutations.
+- Define **error boundaries** via `errorElement` to gracefully handle routing and loader/action errors.
+- Prefer **relative paths** with dot notation (e.g. `"../parent"`) to keep route hierarchy flexible.
+- Use `useRouteLoaderData()` to read data from **parent routes** when needed.
+- Use **fetchers** for non-navigation mutations/forms.
+- Implement `shouldRevalidate` to control when data revalidation happens after navigation.
+
+## TanStack Query (React Query)
+
+- Use TanStack Query with `staleTime` and `gcTime` tuned to data freshness requirements.
+- Use `useInfiniteQuery` for pagination and infinite scrolling.
+- Use **optimistic updates** for mutations to improve perceived performance.
+- Use `queryClient.setQueryDefaults()` to establish consistent defaults per query category.
+- Prefer Suspense mode (with `<Suspense>` boundaries) for a more declarative data fetching approach where appropriate.
+- Implement retry logic with custom backoff for transient network errors when needed.
+- Use `select` to transform/extract specific data from results (keep components lean).
+- For mutations, use `onMutate`, `onError`, and `onSettled` for robust optimistic update + rollback handling.
+- Structure query keys as `[entity, params]` for consistency and correct refetching.
+- Use query invalidation strategies to keep data fresh after mutations.
