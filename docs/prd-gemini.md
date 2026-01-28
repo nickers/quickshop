@@ -7,9 +7,13 @@
 *   **Branding:** Minimalistyczne logo oparte na ikonie koszyka.
 
 ## 2. Architektura i Technologia
-*   **Frontend:** React + Vite.
-*   **Stylizacja:** Tailwind CSS + komponenty w stylu Material Design (nowoczesny, "aplikacyjny" wygląd).
-*   **Model danych:** **Local-first**. Aplikacja działa offline, zmiany zapisywane są lokalnie i synchronizowane po odzyskaniu połączenia.
+* **Frontend:** React + Vite.
+* **Stylizacja:** Tailwind CSS + Material Design components.
+* **Backend (BaaS):** **Supabase**.
+* **Realtime:** Wykorzystanie mechanizmu PostgreSQL Change Data Capture (CDC) do streamowania zmian w listach przez WebSockets.
+* **Auth:** Supabase Auth (Email/Hasło + Google OAuth).
+* **Storage:** (Opcjonalnie w przyszłości) dla zdjęć produktów.
+* **Model danych:** Local-first (z wykorzystaniem np. `React Query` dla cache lub `Zustand` z persystencją) + synchronizacja z Supabase.
 *   **Rozwiązywanie konfliktów:** Strategia **"Last Write Wins"** (ostatnia zmiana nadpisuje) na poziomie pojedynczego produktu.
 *   **Język:** Interfejs w języku polskim (MVP), ale kod przygotowany pod i18n (np. biblioteka `i18next`).
 
