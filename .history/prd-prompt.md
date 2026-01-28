@@ -38,12 +38,13 @@ w efekcie często zapominamy o zakupie rzeczy stale potrzebnych
 
 ## 2. Architektura i Technologia
 * **Frontend:** React + Vite.
+* **Hosting:** Vercel.
 * **Stylizacja:** Tailwind CSS + Material Design components.
 * **Backend (BaaS):** **Supabase**.
 * **Realtime:** Wykorzystanie mechanizmu PostgreSQL Change Data Capture (CDC) do streamowania zmian w listach przez WebSockets.
 * **Auth:** Supabase Auth (Email/Hasło + Google OAuth).
 * **Storage:** (Opcjonalnie w przyszłości) dla zdjęć produktów.
-* **Model danych:** Local-first (z wykorzystaniem np. `React Query` dla cache lub `Zustand` z persystencją) + synchronizacja z Supabase.
+* **Model danych:** Optimistic UI (zakładamy sukces operacji) + Persist Cache (np. TanStack Query zapisujący stan w localStorage). To da wrażenie działania offline i szybkości, będąc łatwiejszym w implementacji niż pełna baza danych po stronie klienta (np. PouchDB/WatermelonDB).
 *   **Rozwiązywanie konfliktów:** Strategia **"Last Write Wins"** (ostatnia zmiana nadpisuje) na poziomie pojedynczego produktu.
 *   **Język:** Interfejs w języku polskim (MVP), ale kod przygotowany pod i18n (np. biblioteka `i18next`).
 
