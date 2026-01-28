@@ -62,3 +62,33 @@
 ## 6. Ograniczenia i Wykluczenia (MVP)
 *   **Limity:** Brak twardych limitów technicznych na liczbę list/produktów (zakładamy "rozsądne użytkowanie"), brak wirtualizacji długich list.
 *   **Brak:** Skanowania kodów kreskowych, integracji z przepisami, analityki cen, wielopoziomowych uprawnień.
+
+### 7. Model Danych i Baza Danych (Supabase)
+
+Aby obsłużyć współdzielenie i streamowanie zmian, struktura tabel w PostgreSQL powinna wyglądać następująco:
+
+#### A. Tabele Główne
+
+* **`profiles`**: Rozszerzenie danych użytkownika (id, email, avatar_url).
+* **`shopping_lists`**:
+* `id` (uuid), `name` (text), `created_at`, `archived` (boolean).
+* `owner_id` (użytkownik, który stworzył listę).
+
+
+* **`list_items`**:
+* `id`, `list_id` (FK), `name` (text), `amount` (text/notatka), `is_bought` (boolean).
+* `position` (int) – do obsługi drag-and-drop.
+* `last_modified_by` (uuid) – dla strategii "Last Write Wins".
+
+
+* **`shared_lists`**: Tabela łącząca (wiele-do-wielu) użytkowników z listami, określająca kto ma dostęp do danej listy.
+
+#### B. Mechanizm Realtime
+
+* Włączenie **Supabase Realtime** na tabeli `list_items`.
+* Klient (React) subskrybuje kanał: `list_items:list_id=eq.{ID_LISTY}`.
+* Każdy `INSERT`, `UPDATE` lub `DELETE` wywołuje natychmiastową aktualizację u wszystkich obserwujących.
+
+#### C. Bezpieczeństwo (RLS - Row Level Security)
+
+* Dostęp do produktów w `list_items` jest ograniczony tylko do użytkowników, którzy widnieją w tabeli `shared_lists` dla danego `list_id`.
