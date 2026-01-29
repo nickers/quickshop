@@ -184,6 +184,27 @@ W wersji MVP (Minimum Viable Product) aplikacja NIE będzie zawierać:
     2. Lista archiwalnych zakupów posortowana chronologicznie.
     3. Możliwość podglądu szczegółów zakończonej listy.
 
+### Synchronizacja i Offline
+* US-016 Synchronizacja zmian po odzyskaniu połączenia (Upload)
+  * Opis: Jako użytkownik, który dodał pozycję będąc offline, chcę, aby po odzyskaniu połączenia lista została zaktualizowana w bazie danych.
+  * Kryteria akceptacji:
+    1. Aplikacja wykrywa powrót połączenia internetowego.
+    2. Pozycje dodane lokalnie (w trybie offline) są automatycznie wysyłane do bazy danych (Supabase).
+    3. Stan synchronizacji jest odzwierciedlony w UI (np. zniknięcie ikony "oczekuje na synchronizację").
+
+* US-017 Pobieranie zmian po odzyskaniu połączenia (Download)
+  * Opis: Jako użytkownik, który był offline, chcę po odzyskaniu połączenia zobaczyć zmiany wprowadzone przez innych użytkowników.
+  * Kryteria akceptacji:
+    1. Po przywróceniu łączności aplikacja automatycznie pobiera najnowszą wersję listy.
+    2. Pozycje dodane przez innych użytkowników w czasie mojej nieobecności pojawiają się na liście.
+    3. Konflikty są rozwiązywane automatycznie (strategia Last Write Wins).
+
+* US-018 Synchronizacja w czasie rzeczywistym (Online)
+  * Opis: Jako użytkownik będący online, chcę natychmiast widzieć zmiany wprowadzane przez innych użytkowników na tej samej liście.
+  * Kryteria akceptacji:
+    1. Gdy inny użytkownik doda, usunie lub zmodyfikuje pozycję, zmiana pojawia się na moim ekranie automatycznie.
+    2. Nie jest wymagane ręczne odświeżanie strony ani interakcja użytkownika.
+
 ## 6. Metryki sukcesu
 
 ### 6.1 Główne wskaźniki (KPI)
