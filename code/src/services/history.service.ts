@@ -1,5 +1,5 @@
 import { supabaseClient } from '../db/supabase.client';
-import { HistoryEntry } from '../types/domain.types';
+import type { HistoryEntry } from '../types/domain.types';
 
 export interface IHistoryService {
   /**

@@ -1,5 +1,5 @@
 import { supabaseClient } from '../db/supabase.client';
-import { CreateListItemDTO, ListItem, UpdateListItemDTO } from '../types/domain.types';
+import type { CreateListItemDTO, ListItem, UpdateListItemDTO } from '../types/domain.types';
 
 type UUID = string;
 

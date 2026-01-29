@@ -1,4 +1,4 @@
-import { Database } from '../db/database.types';
+import type { Database } from '../db/database.types';
 
 // Primitive Types aliases for clarity
 type UUID = string;

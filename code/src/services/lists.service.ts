@@ -1,5 +1,5 @@
 import { supabaseClient } from '../db/supabase.client';
-import { CreateListDTO, ShoppingList } from '../types/domain.types';
+import type { CreateListDTO, ShoppingList } from '../types/domain.types';
 
 type UUID = string;
 
@@ -63,9 +63,15 @@ export class ListsService implements IListService {
   }
 
   async createList(data: CreateListDTO): Promise<ShoppingList> {
+    const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
+    if (authError || !user) throw new Error('User must be logged in to create a list');
+
     const { data: newList, error } = await supabaseClient
       .from('lists')
-      .insert(data)
+      .insert({
+        ...data,
+        created_by: user.id
+      })
       .select()
       .single();
 
@@ -126,7 +132,7 @@ export class ListsService implements IListService {
 
   async completeShoppingTrip(listId: UUID): Promise<void> {
     const { error } = await supabaseClient.rpc('archive_list_items', {
-      list_id: listId, // Parameter name matches the function definition in DB plan
+      p_list_id: listId, // Parameter name matches the function definition in DB plan
     });
 
     if (error) throw error;

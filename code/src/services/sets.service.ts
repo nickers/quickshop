@@ -1,5 +1,5 @@
 import { supabaseClient } from '../db/supabase.client';
-import { CreateSetDTO, CreateSetItemDTO, SetItem, ShoppingSet } from '../types/domain.types';
+import type { CreateSetDTO, CreateSetItemDTO, SetItem, ShoppingSet } from '../types/domain.types';
 
 type UUID = string;
 
@@ -68,9 +68,15 @@ export class SetsService implements ISetsService {
   }
 
   async createSet(data: CreateSetDTO): Promise<ShoppingSet> {
+    const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
+    if (authError || !user) throw new Error('User must be logged in to create a set');
+
     const { data: newSet, error } = await supabaseClient
       .from('sets')
-      .insert(data)
+      .insert({
+        ...data,
+        created_by: user.id
+      })
       .select()
       .single();
 
