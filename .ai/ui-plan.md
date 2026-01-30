@@ -93,6 +93,30 @@ Główny układ (Layout) składa się z:
     *   Potwierdza w modalu (opcjonalnie wpisuje liczbę dodatkowych produktów).
     *   Lista znika z aktywnych, użytkownik wraca na `/lists`.
 
+### Obsługa Konfliktów i Duplikatów
+
+#### 1. Przypadek: Dodanie duplikatu pojedynczego produktu
+*   **Akcja**: Użytkownik w widoku listy wpisuje w `StickyInput` nazwę produktu, który już znajduje się na liście (np. "Mleko", które ma już ilość "1 szt.") i klika "Dodaj".
+*   **Reakcja Systemu**: Aplikacja wykrywa duplikat nazwy.
+*   **UI**: Wyświetla się `ConflictModal` zawierający pole edycji wypełnione **obecną wartością ilości** z listy (np. "1 szt.").
+*   **Decyzja Użytkownika**:
+    *   **Edycja i "OK"**: Użytkownik ręcznie modyfikuje tekst w polu (np. zmieniając "1 szt." na "2 szt." lub dopisując "+ 1 karton" -> "1 szt. + 1 karton") i zatwierdza. Wartość "ilość" na liście zostaje nadpisana wprowadzonym tekstem.
+    *   **"Anuluj"**: Modal znika. Produkt na liście pozostaje bez zmian.
+
+#### 2. Przypadek: Dodanie zestawu z konfliktami
+*   **Kontekst**: Na aktywnej liście znajdują się już "Jajka" (ilość: "6 szt") oraz "Masło". Użytkownik dodaje zestaw "Śniadanie", w którym są "Jajka" (ilość: "10 szt"), "Chleb" i "Mleko".
+*   **Akcja**: Użytkownik klika "Dodaj do listy" przy zestawie.
+*   **Reakcja Systemu**: Algorytm wykrywa kolizję nazwy "Jajka".
+*   **UI**: Pojawia się `ConflictResolutionModal` wyświetlający listę wszystkich konfliktowych pozycji.
+    *   Przy każdym konflikcie (np. "Jajka") widoczny jest przełącznik/checkbox (domyślnie zaznaczony) decydujący o dodaniu ilości z zestawu.
+    *   System pokazuje podgląd zmiany: "6 szt" + "10 szt" -> "6 szt+10 szt".
+*   **Decyzja Użytkownika**:
+    *   **"OK" (Zatwierdź)**:
+        *   **Zaznaczone konflikty**: System aktualizuje ilość poprzez konkatenację tekstu (np. "6 szt+10 szt").
+        *   **Odznaczone konflikty**: System ignoruje pozycję z zestawu (ilość na liście pozostaje bez zmian).
+        *   **Brak konfliktu** (Chleb, Mleko): System dodaje je jako nowe pozycje.
+    *   **"Anuluj"**: Cała operacja zostaje przerwana. Żaden produkt (nawet te bez konfliktu) nie zostaje dodany do listy.
+
 ## 4. Układ i struktura nawigacji
 
 System nawigacji opiera się na dwóch poziomach:
