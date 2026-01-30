@@ -14,4 +14,4 @@ Do realizacji zadania możesz wczytać dane z plików:
 - @.code/src/**
 
 
-Powyższe wykonaj dla widoku o nazwie "2.2. Pulpit List (Widok Główny)".
+Powyższe wykonaj dla widoku o nazwie "2.3. Szczegóły Listy (Widok Zakupów)".
