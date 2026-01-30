@@ -42,9 +42,33 @@ export interface IListService {
 
 export class ListsService implements IListService {
 	async getAllLists(): Promise<ShoppingList[]> {
+		// Get current user
+		const {
+			data: { user },
+		} = await supabaseClient.auth.getUser();
+		if (!user) throw new Error("User must be logged in");
+
+		// Step 1: Get all list IDs the user has access to via list_members
+		const { data: memberData, error: memberError } = await supabaseClient
+			.from("list_members")
+			.select("list_id")
+			.eq("user_id", user.id);
+
+		if (memberError) throw memberError;
+
+		// If user has no lists, return empty array
+		if (!memberData || memberData.length === 0) {
+			return [];
+		}
+
+		// Extract list IDs
+		const listIds = memberData.map((m) => m.list_id);
+
+		// Step 2: Fetch the actual lists using the IDs
 		const { data, error } = await supabaseClient
 			.from("lists")
 			.select("*")
+			.in("id", listIds)
 			.order("updated_at", { ascending: false });
 
 		if (error) throw error;
@@ -70,6 +94,7 @@ export class ListsService implements IListService {
 		if (authError || !user)
 			throw new Error("User must be logged in to create a list");
 
+		// Step 1: Create the list
 		const { data: newList, error } = await supabaseClient
 			.from("lists")
 			.insert({
@@ -80,6 +105,24 @@ export class ListsService implements IListService {
 			.single();
 
 		if (error) throw error;
+
+		// Step 2: Add the creator as a member of the list
+		const { error: memberError } = await supabaseClient
+			.from("list_members")
+			.insert({
+				list_id: newList.id,
+				user_id: user.id,
+			});
+
+		if (memberError) {
+			// If adding member fails, we should probably delete the list
+			// to maintain consistency, but for now just throw the error
+			console.error("Failed to add creator to list_members:", memberError);
+			throw new Error(
+				"Failed to add user as list member. Please try again.",
+			);
+		}
+
 		return newList;
 	}
 

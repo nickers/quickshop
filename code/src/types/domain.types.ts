@@ -47,3 +47,32 @@ export interface CreateSetItemDTO {
 	note?: string | null;
 	sort_order?: number;
 }
+
+// ViewModels for UI components
+/**
+ * ViewModel for a single list in the Lists View.
+ * Extends ShoppingList with additional fields needed for display.
+ */
+export interface ListViewModel extends ShoppingList {
+	/**
+	 * Total number of products on the list (bought + unbought)
+	 */
+	totalItems: number;
+
+	/**
+	 * Number of products marked as bought
+	 */
+	boughtItems: number;
+
+	/**
+	 * Whether the list is shared with other users
+	 * (true if created_by !== current_user_id)
+	 */
+	isShared: boolean;
+
+	/**
+	 * Optional: owner's name (to display if isShared === true)
+	 * Requires join with profiles table
+	 */
+	ownerName?: string;
+}
