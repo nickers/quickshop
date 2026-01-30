@@ -106,13 +106,15 @@ export class ListsService implements IListService {
 
 		if (error) throw error;
 
-		// Step 2: Add the creator as a member of the list
-		const { error: memberError } = await supabaseClient
-			.from("list_members")
-			.insert({
-				list_id: newList.id,
-				user_id: user.id,
-			});
+		// Step 2: Add the creator as a member of the list using the function
+		// We use invite_member_to_list instead of direct INSERT to avoid RLS recursion
+		const { error: memberError } = await supabaseClient.rpc(
+			"invite_member_to_list",
+			{
+				p_list_id: newList.id,
+				p_user_id: user.id,
+			},
+		);
 
 		if (memberError) {
 			// If adding member fails, we should probably delete the list
@@ -165,17 +167,21 @@ export class ListsService implements IListService {
 
 		const userId = users[0].id;
 
-		// 2. Add to list_members
-		const { error: memberError } = await supabaseClient
-			.from("list_members")
-			.insert({
-				list_id: listId,
-				user_id: userId,
-			});
+		// 2. Add to list_members using the function
+		// We use invite_member_to_list instead of direct INSERT to:
+		// - Avoid RLS recursion issues
+		// - Allow existing members to invite others
+		const { error: memberError } = await supabaseClient.rpc(
+			"invite_member_to_list",
+			{
+				p_list_id: listId,
+				p_user_id: userId,
+			},
+		);
 
 		if (memberError) {
 			// Check for duplicate key violation to avoid throwing if already shared
-			if (memberError.code === "23505") return; // unique_violation
+			if (memberError.message?.includes("already a member")) return;
 			throw memberError;
 		}
 	}
