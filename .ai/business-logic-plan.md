@@ -153,6 +153,7 @@ export interface IListService {
   /**
    * Shares a list with another user by email.
    * Implementation: Look up profile by email -> Insert into list_members.
+   * MVP Constraint: Throws error if email does not exist in `profiles` (no invitations).
    * US-005
    */
   shareListWithEmail(listId: UUID, email: string): Promise<void>;
@@ -160,6 +161,7 @@ export interface IListService {
   /**
    * Completes the shopping trip.
    * Implementation: Calls RPC `archive_list_items(list_id)`.
+   * Note: The List entity REMAINS in the database (now empty) and is not deleted.
    * US-006
    */
   completeShoppingTrip(listId: UUID): Promise<void>;
@@ -185,7 +187,7 @@ export interface IListItemsService {
 
   /**
    * Updates an item (toggle bought, change quantity, edit note).
-   * US-009, US-010 (merging duplicates)
+   * US-009, US-010. Note: Merging duplicates uses String Concatenation for quantity (e.g. "1"+"2" -> "1+2"), not math.
    */
   updateItem(data: UpdateListItemDTO): Promise<ListItem>;
 
@@ -197,6 +199,7 @@ export interface IListItemsService {
   /**
    * Updates the order of multiple items.
    * Implementation: Bulk update of `sort_order` field.
+   * Note: `sort_order` values are preserved regardless of `is_bought` status.
    * US-011
    */
   reorderItems(items: { id: UUID; sort_order: number }[]): Promise<void>;

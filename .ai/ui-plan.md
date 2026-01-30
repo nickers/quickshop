@@ -164,11 +164,18 @@ System nawigacji opiera się na dwóch poziomach:
     *   *Czerwony*: Błąd synchronizacji (kliknięcie otwiera szczegóły/ponów).
 
 ### 5.4. ConflictModal (Modal Duplikatów)
-*   **Opis**: Pojawia się, gdy dodawany produkt już istnieje na liście.
-*   **Opcje**:
-    *   "Zsumuj ilości" (np. masz 1, dodajesz 2 -> wynik 3).
-    *   "Pomiń" (anuluj dodawanie).
-    *   "Dodaj jako nową pozycję" (rzadziej, ale możliwe).
+*   **Opis**: Pojawia się, gdy dodawane produkty kolidują nazwą z istniejącymi. Obsługuje dwa tryby.
+*   **Tryb Pojedynczy (Single Item)**:
+    *   Wyświetla pole edycji tekstu ("Ilość") wypełnione obecną wartością z listy (np. "1 szt.").
+    *   **Akcje**:
+        *   "Zatwierdź/OK": Nadpisuje ilość na liście wartością z pola edycji.
+        *   "Anuluj": Pozostawia produkt na liście bez zmian.
+*   **Tryb Zestawu (Set Import)**:
+    *   Wyświetla listę wszystkich konfliktowych pozycji.
+    *   Przy każdej pozycji znajduje się Checkbox/Przełącznik "Zaktualizuj ilość" (domyślnie włączony).
+    *   **Akcje**:
+        *   "Zatwierdź/OK": Dla zaznaczonych pozycji wykonuje konkatenację tekstową ilości (np. "1"+"2"->"1+2"). Niezaznaczone są ignorowane. Nowe produkty (bez konfliktu) są dodawane.
+        *   "Anuluj": Przerywa operację dodawania zestawu całkowicie.
 
 ### 5.5. ShareModal
 *   **Opis**: Modal do wprowadzania adresu e-mail osoby, z którą chcemy współdzielić listę.
