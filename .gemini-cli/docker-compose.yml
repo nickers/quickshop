@@ -1,0 +1,32 @@
+volumes:
+  gemini-work-config:
+
+services:
+  gemini-cli-dotnet:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    
+    container_name: gemini-cli-work-dotnet
+    
+    # Mount your current codebase into the container
+    volumes:
+      - C:/Users/2nick/Workspace/quickshop/:/app
+      # Mount the named volume to persist the CLI's configuration
+      - gemini-work-config:/root/.config/gemini
+    
+    # Set the working directory inside the container to your mounted codebase
+    working_dir: /app
+    
+    # Keep the container running in interactive mode
+    stdin_open: true
+    tty: true
+    
+    # Command to run on container startup. This will drop you into a shell
+    # inside the container, from where you can then run `gemini`.
+    command: /bin/bash
+    
+    # Environment variable for your Google API Key (if you're not using personal account login)
+    # Replace 'YOUR_GEMINI_API_KEY' with your actual key
+    #environment:
+    #  - GEMINI_API_KEY=${GEMINI_API_KEY}
