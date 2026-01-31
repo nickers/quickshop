@@ -10,13 +10,16 @@ export interface IHistoryService {
 
 export class HistoryService implements IHistoryService {
 	async getHistory(): Promise<HistoryEntry[]> {
+		// Ensure session is restored before query (RLS uses auth.uid())
+		await supabaseClient.auth.getSession();
+
 		const { data, error } = await supabaseClient
 			.from("shopping_history")
 			.select("*")
 			.order("completed_at", { ascending: false });
 
 		if (error) throw error;
-		return data;
+		return data ?? [];
 	}
 }
 

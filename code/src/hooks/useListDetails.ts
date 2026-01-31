@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import type { Database } from "@/db/database.types";
+import { historyQueryKeys } from "@/hooks/useHistory";
 import { listQueryKeys } from "@/hooks/useListsView";
 import { listItemsService } from "@/services/items.service";
 import { listsService } from "@/services/lists.service";
@@ -293,6 +294,7 @@ export function useListDetails(listId: string) {
 		queryClient.invalidateQueries({ queryKey: ["list", listId] });
 		queryClient.invalidateQueries({ queryKey: ["list-items", listId] });
 		queryClient.invalidateQueries({ queryKey: listQueryKeys.all });
+		queryClient.invalidateQueries({ queryKey: historyQueryKeys.all });
 	};
 
 	const renameList = async (newName: string) => {
