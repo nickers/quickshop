@@ -6,6 +6,7 @@ import {
 } from "@tanstack/react-query";
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 import { useEffect } from "react";
+import { cfg } from "@/config";
 import { listItemsService } from "@/services/items.service";
 import type {
 	CreateListItemDTO,
@@ -95,24 +96,33 @@ export function Provider({
 	useEffect(() => {
 		console.log("[QueryClient] Setting up custom online detection...");
 
-		// Custom online check - try to reach Supabase
+		// Custom online check - try to reach Supabase (with anon key so we get 200, not 401)
 		const checkOnlineStatus = async () => {
+			if (!cfg.SUPABASE_URL || !cfg.SUPABASE_KEY) {
+				// Fallback to navigator when config is missing (e.g. tests)
+				return navigator.onLine;
+			}
 			try {
 				// Try a lightweight HEAD request to Supabase (won't count as query)
 				const controller = new AbortController();
 				const timeoutId = setTimeout(() => controller.abort(), 3000);
 
 				const response = await fetch(
-					"https://syjwmkiflgnxauitdrez.supabase.co/rest/v1/",
+					`${cfg.SUPABASE_URL}/rest/v1/`,
 					{
 						method: "HEAD",
 						signal: controller.signal,
 						cache: "no-store",
+						headers: {
+							apikey: cfg.SUPABASE_KEY,
+							Authorization: `Bearer ${cfg.SUPABASE_KEY}`,
+						},
 					},
 				);
 
 				clearTimeout(timeoutId);
-				const isOnline = response.ok;
+				// 2xx = online; 401 = reached server but auth issue (e.g. missing key) = still online
+				const isOnline = response.ok || response.status === 401;
 				console.log("[QueryClient] Network check result:", isOnline);
 				return isOnline;
 			} catch {
@@ -193,15 +203,13 @@ export function Provider({
 	useEffect(() => {
 		const handleOnline = () => {
 			console.log("[QueryClient] Going online, resuming paused mutations...");
-			// Resume paused mutations when coming back online
+			// Resume paused mutations when coming back online.
+			// Do NOT call invalidateQueries() here: it would refetch before all mutations
+			// complete and overwrite cache with server data missing the last updates.
+			// MutationCache.onSuccess already invalidates the specific list when each
+			// mutation succeeds, so we get fresh data per list as each mutation finishes.
 			queryClient.resumePausedMutations().then(() => {
 				console.log("[QueryClient] All paused mutations resumed");
-				// Wait a bit for mutations to complete before invalidating
-				// This ensures optimistic updates are replaced with server data
-				setTimeout(() => {
-					console.log("[QueryClient] Invalidating queries after mutations");
-					queryClient.invalidateQueries();
-				}, 500);
 			});
 		};
 
@@ -244,17 +252,11 @@ export function Provider({
 				});
 
 				console.log("[QueryClient] Resuming paused mutations after restore...");
-				// Resume paused mutations after restore from localStorage
-				// This is critical - without this, offline mutations won't be retried after page reload
+				// Resume paused mutations after restore from localStorage.
+				// This is critical - without this, offline mutations won't be retried after page reload.
+				// Do NOT call invalidateQueries() here: same race as on reconnect (see handleOnline).
 				queryClient.resumePausedMutations().then(() => {
 					console.log("[QueryClient] All restored mutations resumed");
-					// Wait for mutations to complete before invalidating
-					setTimeout(() => {
-						console.log(
-							"[QueryClient] Invalidating queries after restored mutations",
-						);
-						queryClient.invalidateQueries();
-					}, 500);
 				});
 			}}
 		>
