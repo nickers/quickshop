@@ -74,7 +74,11 @@ export function EmailAuthForm({
 
 			<Button type="submit" className="w-full" disabled={isLoading}>
 				{isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-				{buttonText}
+				{isLoading
+					? mode === "signin"
+						? "Logowanie..."
+						: "Rejestracja..."
+					: buttonText}
 			</Button>
 		</form>
 	);

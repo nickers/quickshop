@@ -37,6 +37,37 @@ function AuthView() {
 		checkSession();
 	}, [navigate]);
 
+	const getAuthErrorMessage = (
+		supabaseError: { message: string; code?: string },
+		isSignUp: boolean,
+	) => {
+		const msg = supabaseError.message.toLowerCase();
+		const code = (supabaseError.code ?? "").toLowerCase();
+		// Logowanie: konkretne komunikaty
+		if (!isSignUp) {
+			if (
+				msg.includes("invalid login") ||
+				msg.includes("invalid credentials") ||
+				code.includes("invalid") ||
+				msg.includes("invalid_credentials")
+			)
+				return "Nieprawidłowy email lub hasło.";
+		}
+		// Rejestracja: ogólny komunikat (bez ujawniania „użytkownik istnieje")
+		if (isSignUp) {
+			if (
+				msg.includes("already registered") ||
+				msg.includes("already exists") ||
+				msg.includes("user_already_exists")
+			)
+				return "Nie udało się utworzyć konta. Sprawdź dane lub spróbuj zalogować się.";
+		}
+		// Fallback
+		if (msg.includes("email") && msg.includes("confirm"))
+			return "Sprawdź swoją skrzynkę pocztową, aby potwierdzić adres email.";
+		return "Wystąpił błąd. Spróbuj ponownie.";
+	};
+
 	const handleEmailAuth = async (credentials: AuthCredentials) => {
 		setIsLoading(true);
 		setError(null);
@@ -54,14 +85,9 @@ function AuthView() {
 						});
 
 			if (result.error) {
-				// Map common error codes to user-friendly messages
-				const errorMessages: Record<string, string> = {
-					invalid_credentials: "Nieprawidłowy email lub hasło",
-					user_already_exists: "Użytkownik z tym adresem email już istnieje",
-					invalid_login_credentials: "Nieprawidłowy email lub hasło",
-				};
-
-				setError(errorMessages[result.error.message] || result.error.message);
+				setError(
+					getAuthErrorMessage(result.error, mode === "signup"),
+				);
 				return;
 			}
 
@@ -96,7 +122,9 @@ function AuthView() {
 			});
 
 			if (error) {
-				setError(error.message);
+				setError(
+					"Logowanie przez Google nie powiodło się. Spróbuj ponownie.",
+				);
 			}
 		} catch (err) {
 			setError("Wystąpił nieoczekiwany błąd. Spróbuj ponownie.");
@@ -118,11 +146,41 @@ function AuthView() {
 					</CardDescription>
 				</CardHeader>
 				<CardContent className="space-y-4">
-					<AuthModeSwitch currentMode={mode} onModeChange={setMode} />
+					<AuthModeSwitch
+						currentMode={mode}
+						onModeChange={(newMode) => {
+							setMode(newMode);
+							setError(null);
+						}}
+					/>
 
 					{error && (
-						<div className="p-3 text-sm text-red-500 bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-800 rounded-md">
-							{error}
+						<div
+							className="flex items-start gap-2 p-3 text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-800 rounded-md"
+							role="alert"
+						>
+							<span className="flex-1">{error}</span>
+							<button
+								type="button"
+								onClick={() => setError(null)}
+								className="shrink-0 rounded p-0.5 hover:bg-red-200/50 dark:hover:bg-red-800/30 focus:outline-none focus:ring-2 focus:ring-red-500"
+								aria-label="Zamknij komunikat błędu"
+							>
+								<svg
+									className="h-4 w-4"
+									fill="none"
+									stroke="currentColor"
+									viewBox="0 0 24 24"
+									aria-hidden
+								>
+									<path
+										strokeLinecap="round"
+										strokeLinejoin="round"
+										strokeWidth={2}
+										d="M6 18L18 6M6 6l12 12"
+									/>
+								</svg>
+							</button>
 						</div>
 					)}
 
