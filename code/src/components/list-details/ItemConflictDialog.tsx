@@ -64,7 +64,7 @@ export function ItemConflictDialog({
 					<Button variant="outline" onClick={onCancel}>
 						Anuluj
 					</Button>
-					<Button onClick={handleConfirm}>Zaktualizuj</Button>
+					<Button onClick={handleConfirm}>Zatwierdź</Button>
 				</DialogFooter>
 			</DialogContent>
 		</Dialog>

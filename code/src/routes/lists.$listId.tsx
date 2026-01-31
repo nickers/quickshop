@@ -4,6 +4,7 @@ import { ActiveItemsList } from "@/components/list-details/ActiveItemsList";
 import { CompletedItemsSection } from "@/components/list-details/CompletedItemsSection";
 import { ItemConflictDialog } from "@/components/list-details/ItemConflictDialog";
 import { ListDetailsHeader } from "@/components/list-details/ListDetailsHeader";
+import { ShareModal } from "@/components/list-details/ShareModal";
 import { StickyInputBar } from "@/components/list-details/StickyInputBar";
 import { Button } from "@/components/ui/button";
 import {
@@ -27,7 +28,7 @@ function ListDetailsPage() {
 	const { listId } = Route.useParams();
 	const navigate = useNavigate();
 	const [archiveConfirmOpen, setArchiveConfirmOpen] = useState(false);
-	const [sharePlaceholderOpen, setSharePlaceholderOpen] = useState(false);
+	const [shareModalOpen, setShareModalOpen] = useState(false);
 	const [renameDialogOpen, setRenameDialogOpen] = useState(false);
 	const [renameInputValue, setRenameInputValue] = useState("");
 	const [createSetPlaceholderOpen, setCreateSetPlaceholderOpen] = useState(false);
@@ -124,7 +125,7 @@ function ListDetailsPage() {
 		<div className="flex flex-col min-h-screen pb-20 relative bg-background">
 			<ListDetailsHeader
 				list={list}
-				onShare={() => setSharePlaceholderOpen(true)}
+				onShare={() => setShareModalOpen(true)}
 				onArchive={() => setArchiveConfirmOpen(true)}
 				onCreateSet={() => setCreateSetPlaceholderOpen(true)}
 				onRename={handleRenameOpen}
@@ -157,6 +158,12 @@ function ListDetailsPage() {
 				onCancel={cancelConflict}
 			/>
 
+			<ShareModal
+				isOpen={shareModalOpen}
+				onClose={() => setShareModalOpen(false)}
+				listId={list.id}
+			/>
+
 			{/* Archiwizacja: potwierdzenie */}
 			<Dialog open={archiveConfirmOpen} onOpenChange={setArchiveConfirmOpen}>
 				<DialogContent className="sm:max-w-[425px]">
@@ -178,24 +185,6 @@ function ListDetailsPage() {
 						<Button onClick={handleArchiveConfirm} disabled={isArchiving}>
 							{isArchiving ? "Zapisywanie..." : "Zakończ zakupy"}
 						</Button>
-					</DialogFooter>
-				</DialogContent>
-			</Dialog>
-
-			{/* Udostępnij: placeholder (ShareModal – część 8) */}
-			<Dialog
-				open={sharePlaceholderOpen}
-				onOpenChange={setSharePlaceholderOpen}
-			>
-				<DialogContent className="sm:max-w-[425px]">
-					<DialogHeader>
-						<DialogTitle>Udostępnij listę</DialogTitle>
-						<DialogDescription>
-							Udostępnianie listy – wkrótce (część 8).
-						</DialogDescription>
-					</DialogHeader>
-					<DialogFooter>
-						<Button onClick={() => setSharePlaceholderOpen(false)}>OK</Button>
 					</DialogFooter>
 				</DialogContent>
 			</Dialog>

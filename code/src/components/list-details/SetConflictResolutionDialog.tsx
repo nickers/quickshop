@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -33,6 +33,15 @@ export function SetConflictResolutionDialog({
 	const [selectedConflicts, setSelectedConflicts] = useState<Set<string>>(
 		new Set(),
 	);
+
+	// Domyślnie zaznacz wszystkie konflikty (Zaktualizuj ilość)
+	useEffect(() => {
+		if (isOpen && conflicts.length > 0) {
+			setSelectedConflicts(
+				new Set(conflicts.map((c) => c.existingItem.name)),
+			);
+		}
+	}, [isOpen, conflicts]);
 
 	const handleToggle = (itemName: string) => {
 		const next = new Set(selectedConflicts);
@@ -82,16 +91,22 @@ export function SetConflictResolutionDialog({
 							className="flex items-start gap-3 mb-4 p-3 border rounded-md"
 						>
 							<Checkbox
+								id={`conflict-${conflict.existingItem.id}`}
 								checked={selectedConflicts.has(conflict.existingItem.name)}
 								onCheckedChange={() => handleToggle(conflict.existingItem.name)}
 							/>
-							<div>
-								<div className="font-medium">{conflict.existingItem.name}</div>
-								<div className="text-sm text-muted-foreground">
-									Obecnie: {conflict.existingItem.quantity || "0"} <br />
-									Dodawane: {conflict.newItemCandidate.quantity || "0"} <br />
+							<div className="flex-1">
+								<label
+									htmlFor={`conflict-${conflict.existingItem.id}`}
+									className="font-medium cursor-pointer"
+								>
+									{conflict.existingItem.name}
+								</label>
+								<div className="text-sm text-muted-foreground mt-1">
+									Zaktualizuj ilość: Obecnie {conflict.existingItem.quantity || "—"}{" "}
+									+ Dodawane {conflict.newItemCandidate.quantity || "—"} →{" "}
 									<span className="text-primary font-semibold">
-										Po złączeniu: {conflict.suggestedQuantity}
+										{conflict.suggestedQuantity}
 									</span>
 								</div>
 							</div>

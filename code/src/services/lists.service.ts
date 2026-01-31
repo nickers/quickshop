@@ -1,5 +1,9 @@
 import { supabaseClient } from "../db/supabase.client";
-import type { CreateListDTO, ShoppingList } from "../types/domain.types";
+import type {
+	CreateListDTO,
+	ListMemberWithProfile,
+	ShoppingList,
+} from "../types/domain.types";
 
 type UUID = string;
 
@@ -33,6 +37,16 @@ export interface IListService {
 	 * Shares a list with another user by email.
 	 */
 	shareListWithEmail(listId: UUID, email: string): Promise<void>;
+
+	/**
+	 * Fetches list members with profile data (email, full_name) for a list.
+	 */
+	getListMembers(listId: UUID): Promise<ListMemberWithProfile[]>;
+
+	/**
+	 * Removes a user from list members (revokes access).
+	 */
+	removeListMember(listId: UUID, userId: UUID): Promise<void>;
 
 	/**
 	 * Completes the shopping trip.
@@ -182,6 +196,39 @@ export class ListsService implements IListService {
 			if (memberError.message?.includes("already a member")) return;
 			throw memberError;
 		}
+	}
+
+	async getListMembers(listId: UUID): Promise<ListMemberWithProfile[]> {
+		const { data, error } = await supabaseClient
+			.from("list_members")
+			.select("list_id, user_id, created_at, profiles(email, full_name)")
+			.eq("list_id", listId);
+
+		if (error) throw error;
+		if (!data) return [];
+
+		return data.map((row) => {
+			const profiles = row.profiles as
+				| { email: string | null; full_name: string | null }
+				| null;
+			return {
+				list_id: row.list_id,
+				user_id: row.user_id,
+				created_at: row.created_at,
+				email: profiles?.email ?? null,
+				full_name: profiles?.full_name ?? null,
+			};
+		});
+	}
+
+	async removeListMember(listId: UUID, userId: UUID): Promise<void> {
+		const { error } = await supabaseClient
+			.from("list_members")
+			.delete()
+			.eq("list_id", listId)
+			.eq("user_id", userId);
+
+		if (error) throw error;
 	}
 
 	async completeShoppingTrip(listId: UUID): Promise<void> {

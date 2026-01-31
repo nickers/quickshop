@@ -106,3 +106,14 @@ export interface SingleItemConflictState {
 	conflictingItem?: ListItem;
 	pendingName?: string; // Nazwa którą użytkownik próbował dodać
 }
+
+/**
+ * Członek listy z danymi profilu (do ShareModal – lista osób z dostępem).
+ */
+export interface ListMemberWithProfile {
+	list_id: UUID;
+	user_id: UUID;
+	created_at: string | null;
+	email: string | null;
+	full_name: string | null;
+}
