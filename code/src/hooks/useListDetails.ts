@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { Database } from "@/db/database.types";
 import { historyQueryKeys } from "@/hooks/useHistory";
 import { listQueryKeys } from "@/hooks/useListsView";
@@ -13,12 +13,31 @@ import type {
 
 type ListItem = Database["public"]["Tables"]["list_items"]["Row"];
 
+export type SyncStatus = "synced" | "syncing" | "error";
+
 export function useListDetails(listId: string) {
 	const queryClient = useQueryClient();
 	const [conflictState, setConflictState] = useState<SingleItemConflictState>({
 		isOpen: false,
 	});
 	const [pendingIds, setPendingIds] = useState<Set<string>>(new Set());
+	const [lastMutationError, setLastMutationError] = useState<Error | null>(
+		null,
+	);
+	const [isOnline, setIsOnline] = useState(
+		typeof navigator !== "undefined" ? navigator.onLine : true,
+	);
+
+	useEffect(() => {
+		const handleOnline = () => setIsOnline(true);
+		const handleOffline = () => setIsOnline(false);
+		window.addEventListener("online", handleOnline);
+		window.addEventListener("offline", handleOffline);
+		return () => {
+			window.removeEventListener("online", handleOnline);
+			window.removeEventListener("offline", handleOffline);
+		};
+	}, []);
 
 	// Helper to check if error is a network error
 	const isNetworkError = (error: unknown) => {
@@ -91,7 +110,7 @@ export function useListDetails(listId: string) {
 			return { previousItems, optimisticId };
 		},
 		onError: (err, _variables, context) => {
-			// Only rollback if it's NOT a network error
+			setLastMutationError(err instanceof Error ? err : new Error(String(err)));
 			if (context?.previousItems && !isNetworkError(err)) {
 				queryClient.setQueryData(["list-items", listId], context.previousItems);
 			}
@@ -132,6 +151,7 @@ export function useListDetails(listId: string) {
 			return { previousItems, itemId: updatedItem.id };
 		},
 		onError: (err, _variables, context) => {
+			setLastMutationError(err instanceof Error ? err : new Error(String(err)));
 			if (context?.previousItems && !isNetworkError(err)) {
 				queryClient.setQueryData(["list-items", listId], context.previousItems);
 			}
@@ -170,6 +190,7 @@ export function useListDetails(listId: string) {
 			return { previousItems, itemId };
 		},
 		onError: (err, _variables, context) => {
+			setLastMutationError(err instanceof Error ? err : new Error(String(err)));
 			if (context?.previousItems && !isNetworkError(err)) {
 				queryClient.setQueryData(["list-items", listId], context.previousItems);
 			}
@@ -219,11 +240,33 @@ export function useListDetails(listId: string) {
 			return { previousItems };
 		},
 		onError: (err, _variables, context) => {
+			setLastMutationError(err instanceof Error ? err : new Error(String(err)));
 			if (context?.previousItems && !isNetworkError(err)) {
 				queryClient.setQueryData(["list-items", listId], context.previousItems);
 			}
 		},
 	});
+
+	const isAnyMutationPending =
+		createItemMutation.isPending ||
+		updateItemMutation.isPending ||
+		deleteItemMutation.isPending ||
+		reorderItemsMutation.isPending;
+
+	const syncStatus: SyncStatus =
+		lastMutationError && isOnline
+			? "error"
+			: !isOnline && (pendingIds.size > 0 || isAnyMutationPending)
+				? "syncing"
+				: isAnyMutationPending
+					? "syncing"
+					: "synced";
+
+	const onSyncRetry = useCallback(() => {
+		setLastMutationError(null);
+		queryClient.invalidateQueries({ queryKey: ["list-items", listId] });
+		queryClient.invalidateQueries({ queryKey: ["list", listId] });
+	}, [queryClient, listId]);
 
 	// Handlers
 	const handleAddItem = async (name: string) => {
@@ -284,6 +327,19 @@ export function useListDetails(listId: string) {
 		});
 	};
 
+	const updateItemFields = useCallback(
+		(
+			itemId: string,
+			data: { quantity?: string | null; note?: string | null },
+		) => {
+			updateItemMutation.mutate({
+				type: "update",
+				data: { id: itemId, ...data },
+			});
+		},
+		[updateItemMutation],
+	);
+
 	const handleReorderItems = (orderedActiveItems: ListItem[]) => {
 		// Only reorder active items; completed items stay at end
 		reorderItemsMutation.mutate(orderedActiveItems);
@@ -315,6 +371,7 @@ export function useListDetails(listId: string) {
 		addItem: handleAddItem,
 		toggleItem: handleToggleItem,
 		deleteItem: handleDeleteItem,
+		updateItemFields,
 		conflictState,
 		resolveConflict,
 		cancelConflict: () => setConflictState({ isOpen: false }),
@@ -323,5 +380,8 @@ export function useListDetails(listId: string) {
 		renameList,
 		reorderItems: handleReorderItems,
 		isReordering: reorderItemsMutation.isPending,
+		syncStatus,
+		syncError: lastMutationError,
+		onSyncRetry,
 	};
 }

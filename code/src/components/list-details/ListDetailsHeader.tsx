@@ -16,7 +16,9 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import type { SyncStatus } from "@/hooks/useListDetails";
 import type { ShoppingList } from "@/types/domain.types";
+import { SyncStatusIndicator } from "./SyncStatusIndicator";
 
 interface ListDetailsHeaderProps {
 	list: ShoppingList;
@@ -24,6 +26,9 @@ interface ListDetailsHeaderProps {
 	onArchive: () => void;
 	onCreateSet: () => void;
 	onRename?: () => void;
+	syncStatus?: SyncStatus;
+	syncError?: Error | null;
+	onSyncRetry?: () => void;
 }
 
 export function ListDetailsHeader({
@@ -32,6 +37,9 @@ export function ListDetailsHeader({
 	onArchive,
 	onCreateSet,
 	onRename,
+	syncStatus = "synced",
+	syncError = null,
+	onSyncRetry,
 }: ListDetailsHeaderProps) {
 	return (
 		<div className="flex items-center justify-between p-4 border-b bg-background sticky top-0 z-10">
@@ -47,11 +55,10 @@ export function ListDetailsHeader({
 					<h1 className="font-semibold text-lg leading-tight truncate">
 						{list.name}
 					</h1>
-					{/* SyncStatusIndicator – placeholder (część 9) */}
-					<div
-						className="h-1 w-4 mt-0.5"
-						aria-hidden
-						title="Status synchronizacji – wkrótce"
+					<SyncStatusIndicator
+						status={syncStatus}
+						error={syncError}
+						onRetry={onSyncRetry}
 					/>
 				</div>
 			</div>

@@ -20,6 +20,10 @@ interface ActiveItemsListProps {
 	items: ListItem[];
 	onToggle: (id: string, isCompleted: boolean) => void;
 	onDelete: (id: string) => void;
+	onUpdate?: (
+		id: string,
+		data: { quantity?: string | null; note?: string | null },
+	) => void;
 	onReorder?: (orderedItems: ListItem[]) => void;
 	pendingIds?: Set<string>;
 }
@@ -28,11 +32,16 @@ function SortableRow({
 	item,
 	onToggle,
 	onDelete,
+	onUpdate,
 	pendingIds,
 }: {
 	item: ListItem;
 	onToggle: (id: string, isCompleted: boolean) => void;
 	onDelete: (id: string) => void;
+	onUpdate?: (
+		id: string,
+		data: { quantity?: string | null; note?: string | null },
+	) => void;
 	pendingIds: Set<string>;
 }) {
 	const {
@@ -56,6 +65,7 @@ function SortableRow({
 				item={item}
 				onToggle={onToggle}
 				onDelete={onDelete}
+				onUpdate={onUpdate}
 				isPending={pendingIds.has(item.id)}
 				dragHandleProps={{
 					attributes: attributes as unknown as Record<string, unknown>,
@@ -72,6 +82,7 @@ export function ActiveItemsList({
 	items,
 	onToggle,
 	onDelete,
+	onUpdate,
 	onReorder,
 	pendingIds = new Set(),
 }: ActiveItemsListProps) {
@@ -115,6 +126,7 @@ export function ActiveItemsList({
 							item={item}
 							onToggle={onToggle}
 							onDelete={onDelete}
+							onUpdate={onUpdate}
 							pendingIds={pendingIds}
 						/>
 					))}

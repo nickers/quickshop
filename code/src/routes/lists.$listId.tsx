@@ -60,6 +60,7 @@ function ListDetailsPage() {
 		addItem,
 		toggleItem,
 		deleteItem,
+		updateItemFields,
 		conflictState,
 		resolveConflict,
 		cancelConflict,
@@ -67,6 +68,9 @@ function ListDetailsPage() {
 		archiveList,
 		renameList,
 		reorderItems,
+		syncStatus,
+		syncError,
+		onSyncRetry,
 	} = useListDetails(listId);
 
 	const handleArchiveConfirm = async () => {
@@ -131,6 +135,9 @@ function ListDetailsPage() {
 				onArchive={() => setArchiveConfirmOpen(true)}
 				onCreateSet={() => setCreateSetPlaceholderOpen(true)}
 				onRename={handleRenameOpen}
+				syncStatus={syncStatus}
+				syncError={syncError}
+				onSyncRetry={onSyncRetry}
 			/>
 
 			<div className="flex-1 overflow-y-auto">
@@ -138,6 +145,7 @@ function ListDetailsPage() {
 					items={activeItems}
 					onToggle={toggleItem}
 					onDelete={deleteItem}
+					onUpdate={updateItemFields}
 					onReorder={reorderItems}
 					pendingIds={pendingIds}
 				/>
@@ -146,6 +154,7 @@ function ListDetailsPage() {
 					items={completedItems}
 					onToggle={toggleItem}
 					onDelete={deleteItem}
+					onUpdate={updateItemFields}
 					pendingIds={pendingIds}
 				/>
 			</div>

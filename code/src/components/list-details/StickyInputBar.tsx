@@ -1,5 +1,5 @@
 import { Plus } from "lucide-react";
-import { useId, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
@@ -14,8 +14,15 @@ export function StickyInputBar({
 	isSubmitting,
 }: StickyInputBarProps) {
 	const errorId = useId();
+	const inputRef = useRef<HTMLInputElement>(null);
 	const [value, setValue] = useState("");
 	const [showError, setShowError] = useState(false);
+
+	useEffect(() => {
+		if (showError) {
+			inputRef.current?.focus();
+		}
+	}, [showError]);
 
 	const handleSubmit = (e: React.FormEvent) => {
 		e.preventDefault();
@@ -37,6 +44,7 @@ export function StickyInputBar({
 				className="flex gap-2 max-w-screen-md mx-auto"
 			>
 				<Input
+					ref={inputRef}
 					value={value}
 					onChange={(e) => {
 						setValue(e.target.value);

@@ -6,6 +6,10 @@ interface CompletedItemsSectionProps {
 	items: ListItem[];
 	onToggle: (id: string, isCompleted: boolean) => void;
 	onDelete: (id: string) => void;
+	onUpdate?: (
+		id: string,
+		data: { quantity?: string | null; note?: string | null },
+	) => void;
 	pendingIds?: Set<string>;
 }
 
@@ -13,6 +17,7 @@ export function CompletedItemsSection({
 	items,
 	onToggle,
 	onDelete,
+	onUpdate,
 	pendingIds = new Set(),
 }: CompletedItemsSectionProps) {
 	if (items.length === 0) return null;
@@ -32,6 +37,7 @@ export function CompletedItemsSection({
 					item={item}
 					onToggle={onToggle}
 					onDelete={onDelete}
+					onUpdate={onUpdate}
 					isPending={pendingIds.has(item.id)}
 				/>
 			))}
