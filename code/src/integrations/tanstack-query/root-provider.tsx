@@ -1,9 +1,16 @@
-import { QueryClient, MutationCache, onlineManager } from "@tanstack/react-query";
-import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 import { createSyncStoragePersister } from "@tanstack/query-sync-storage-persister";
+import {
+	MutationCache,
+	onlineManager,
+	QueryClient,
+} from "@tanstack/react-query";
+import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 import { useEffect } from "react";
 import { listItemsService } from "@/services/items.service";
-import type { CreateListItemDTO, UpdateListItemDTO } from "@/types/domain.types";
+import type {
+	CreateListItemDTO,
+	UpdateListItemDTO,
+} from "@/types/domain.types";
 
 // Create persister using localStorage
 const persister = createSyncStoragePersister({
@@ -12,7 +19,7 @@ const persister = createSyncStoragePersister({
 });
 
 // Define mutation function type that can handle all mutation types
-type MutationVariables = 
+type MutationVariables =
 	| { type: "create"; data: CreateListItemDTO }
 	| { type: "update"; data: UpdateListItemDTO }
 	| { type: "delete"; itemId: string };
@@ -46,18 +53,28 @@ export function getContext() {
 		// Add global mutation cache callbacks
 		mutationCache: new MutationCache({
 			onSuccess: (_data, _variables, _context, mutation) => {
-				console.log("[MutationCache] Mutation succeeded:", mutation.options.mutationKey);
+				console.log(
+					"[MutationCache] Mutation succeeded:",
+					mutation.options.mutationKey,
+				);
 				// Invalidate queries after each successful mutation
 				if (mutation.options.mutationKey?.[0] === "list-items") {
 					const listId = mutation.options.mutationKey[2];
 					if (listId) {
-						console.log("[MutationCache] Invalidating queries for list:", listId);
+						console.log(
+							"[MutationCache] Invalidating queries for list:",
+							listId,
+						);
 						queryClient.invalidateQueries({ queryKey: ["list-items", listId] });
 					}
 				}
 			},
 			onError: (error, _variables, _context, mutation) => {
-				console.error("[MutationCache] Mutation failed:", mutation.options.mutationKey, error);
+				console.error(
+					"[MutationCache] Mutation failed:",
+					mutation.options.mutationKey,
+					error,
+				);
 			},
 		}),
 	});
@@ -77,20 +94,23 @@ export function Provider({
 	// Set up online/offline detection with custom network check
 	useEffect(() => {
 		console.log("[QueryClient] Setting up custom online detection...");
-		
+
 		// Custom online check - try to reach Supabase
 		const checkOnlineStatus = async () => {
 			try {
 				// Try a lightweight HEAD request to Supabase (won't count as query)
 				const controller = new AbortController();
 				const timeoutId = setTimeout(() => controller.abort(), 3000);
-				
-				const response = await fetch('https://syjwmkiflgnxauitdrez.supabase.co/rest/v1/', {
-					method: 'HEAD',
-					signal: controller.signal,
-					cache: 'no-store',
-				});
-				
+
+				const response = await fetch(
+					"https://syjwmkiflgnxauitdrez.supabase.co/rest/v1/",
+					{
+						method: "HEAD",
+						signal: controller.signal,
+						cache: "no-store",
+					},
+				);
+
 				clearTimeout(timeoutId);
 				const isOnline = response.ok;
 				console.log("[QueryClient] Network check result:", isOnline);
@@ -102,7 +122,7 @@ export function Provider({
 		};
 
 		// Check online status immediately
-		checkOnlineStatus().then(isOnline => {
+		checkOnlineStatus().then((isOnline) => {
 			onlineManager.setOnline(isOnline);
 			console.log("[QueryClient] Initial online state:", isOnline);
 		});
@@ -110,11 +130,13 @@ export function Provider({
 		// Set up event listener for online/offline detection
 		const unsubscribe = onlineManager.setEventListener((setOnline) => {
 			const handleOnline = async () => {
-				console.log("[QueryClient] Browser online event detected, verifying...");
+				console.log(
+					"[QueryClient] Browser online event detected, verifying...",
+				);
 				const isReallyOnline = await checkOnlineStatus();
 				setOnline(isReallyOnline);
 			};
-			
+
 			const handleOffline = () => {
 				console.log("[QueryClient] Browser went OFFLINE");
 				setOnline(false);
@@ -200,7 +222,9 @@ export function Provider({
 				},
 			}}
 			onSuccess={() => {
-				console.log("[QueryClient] Restored from localStorage, setting mutation defaults...");
+				console.log(
+					"[QueryClient] Restored from localStorage, setting mutation defaults...",
+				);
 				// Set mutation defaults FIRST before resuming
 				queryClient.setMutationDefaults(["list-items"], {
 					networkMode: "offlineFirst",
@@ -226,7 +250,9 @@ export function Provider({
 					console.log("[QueryClient] All restored mutations resumed");
 					// Wait for mutations to complete before invalidating
 					setTimeout(() => {
-						console.log("[QueryClient] Invalidating queries after restored mutations");
+						console.log(
+							"[QueryClient] Invalidating queries after restored mutations",
+						);
 						queryClient.invalidateQueries();
 					}, 500);
 				});

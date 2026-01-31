@@ -18,7 +18,11 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
 });
 
 function isAppRoute(pathname: string) {
-	return pathname.startsWith("/lists") || pathname.startsWith("/sets") || pathname === "/history";
+	return (
+		pathname.startsWith("/lists") ||
+		pathname.startsWith("/sets") ||
+		pathname === "/history"
+	);
 }
 
 function RootComponent() {

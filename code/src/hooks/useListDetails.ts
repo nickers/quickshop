@@ -22,7 +22,12 @@ export function useListDetails(listId: string) {
 		// In many browsers, a failed fetch due to no network results in a TypeError
 		// or an error that doesn't have a status code (like Supabase/PostgREST errors)
 		const err = error as { status?: number; message?: string; name?: string };
-		return !err?.status && (err?.message === "Failed to fetch" || err?.name === "TypeError" || !navigator.onLine);
+		return (
+			!err?.status &&
+			(err?.message === "Failed to fetch" ||
+				err?.name === "TypeError" ||
+				!navigator.onLine)
+		);
 	};
 
 	// Fetch List Details
@@ -52,13 +57,16 @@ export function useListDetails(listId: string) {
 		mutationKey: ["list-items", "create", listId],
 		// Add scope to ensure mutations for this list run sequentially
 		scope: { id: `list-${listId}` },
-		mutationFn: ({ data }: { type: "create"; data: CreateListItemDTO }) => 
+		mutationFn: ({ data }: { type: "create"; data: CreateListItemDTO }) =>
 			listItemsService.createItem(data),
 		networkMode: "offlineFirst",
 		onMutate: async (variables) => {
 			const newItem = variables.data;
 			await queryClient.cancelQueries({ queryKey: ["list-items", listId] });
-			const previousItems = queryClient.getQueryData<ListItem[]>(["list-items", listId]);
+			const previousItems = queryClient.getQueryData<ListItem[]>([
+				"list-items",
+				listId,
+			]);
 
 			queryClient.setQueryData<ListItem[]>(["list-items", listId], (old) => {
 				const optimisticItem: ListItem = {
@@ -89,13 +97,16 @@ export function useListDetails(listId: string) {
 		mutationKey: ["list-items", "update", listId],
 		// Add scope to ensure mutations for this list run sequentially
 		scope: { id: `list-${listId}` },
-		mutationFn: ({ data }: { type: "update"; data: UpdateListItemDTO }) => 
+		mutationFn: ({ data }: { type: "update"; data: UpdateListItemDTO }) =>
 			listItemsService.updateItem(data),
 		networkMode: "offlineFirst",
 		onMutate: async (variables) => {
 			const updatedItem = variables.data;
 			await queryClient.cancelQueries({ queryKey: ["list-items", listId] });
-			const previousItems = queryClient.getQueryData<ListItem[]>(["list-items", listId]);
+			const previousItems = queryClient.getQueryData<ListItem[]>([
+				"list-items",
+				listId,
+			]);
 
 			queryClient.setQueryData<ListItem[]>(["list-items", listId], (old) => {
 				return old?.map((item) =>
@@ -116,13 +127,16 @@ export function useListDetails(listId: string) {
 		mutationKey: ["list-items", "delete", listId],
 		// Add scope to ensure mutations for this list run sequentially
 		scope: { id: `list-${listId}` },
-		mutationFn: ({ itemId }: { type: "delete"; itemId: string }) => 
+		mutationFn: ({ itemId }: { type: "delete"; itemId: string }) =>
 			listItemsService.deleteItem(itemId),
 		networkMode: "offlineFirst",
 		onMutate: async (variables) => {
 			const itemId = variables.itemId;
 			await queryClient.cancelQueries({ queryKey: ["list-items", listId] });
-			const previousItems = queryClient.getQueryData<ListItem[]>(["list-items", listId]);
+			const previousItems = queryClient.getQueryData<ListItem[]>([
+				"list-items",
+				listId,
+			]);
 
 			queryClient.setQueryData<ListItem[]>(["list-items", listId], (old) => {
 				return old?.filter((item) => item.id !== itemId);

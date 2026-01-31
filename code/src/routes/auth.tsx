@@ -85,9 +85,7 @@ function AuthView() {
 						});
 
 			if (result.error) {
-				setError(
-					getAuthErrorMessage(result.error, mode === "signup"),
-				);
+				setError(getAuthErrorMessage(result.error, mode === "signup"));
 				return;
 			}
 
@@ -122,9 +120,7 @@ function AuthView() {
 			});
 
 			if (error) {
-				setError(
-					"Logowanie przez Google nie powiodło się. Spróbuj ponownie.",
-				);
+				setError("Logowanie przez Google nie powiodło się. Spróbuj ponownie.");
 			}
 		} catch (err) {
 			setError("Wystąpił nieoczekiwany błąd. Spróbuj ponownie.");
@@ -173,6 +169,7 @@ function AuthView() {
 									viewBox="0 0 24 24"
 									aria-hidden
 								>
+									<title>Zamknij</title>
 									<path
 										strokeLinecap="round"
 										strokeLinejoin="round"

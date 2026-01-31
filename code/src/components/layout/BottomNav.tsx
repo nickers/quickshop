@@ -23,7 +23,9 @@ export function BottomNav() {
 							key={to}
 							to={to}
 							className={`flex flex-col items-center gap-1 py-3 px-4 text-xs transition-colors ${
-								isCurrent ? "text-primary font-medium" : "text-muted-foreground hover:text-foreground"
+								isCurrent
+									? "text-primary font-medium"
+									: "text-muted-foreground hover:text-foreground"
 							}`}
 						>
 							<Icon className="h-6 w-6" aria-hidden />

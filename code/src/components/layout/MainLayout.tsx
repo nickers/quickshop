@@ -1,7 +1,7 @@
 import { useRouterState } from "@tanstack/react-router";
 import type { ReactNode } from "react";
-import { BottomNav } from "./BottomNav";
 import Header from "@/components/Header";
+import { BottomNav } from "./BottomNav";
 
 const DASHBOARD_PATHS = ["/lists", "/sets", "/history"] as const;
 
