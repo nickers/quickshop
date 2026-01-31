@@ -6,7 +6,7 @@ import {
 	useRouterState,
 } from "@tanstack/react-router";
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
-import Header from "../components/Header";
+import { MainLayout } from "@/components/layout/MainLayout";
 import TanStackQueryDevtools from "../integrations/tanstack-query/devtools";
 
 interface MyRouterContext {
@@ -17,17 +17,23 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
 	component: RootComponent,
 });
 
-function RootComponent() {
-	const routerState = useRouterState();
-	const currentPath = routerState.location.pathname;
+function isAppRoute(pathname: string) {
+	return pathname.startsWith("/lists") || pathname.startsWith("/sets") || pathname === "/history";
+}
 
-	// Don't show header on auth page or index (loading) page
-	const showHeader = currentPath !== "/auth" && currentPath !== "/";
+function RootComponent() {
+	const pathname = useRouterState({ select: (s) => s.location.pathname });
+	const useMainLayout = isAppRoute(pathname);
 
 	return (
 		<>
-			{showHeader && <Header />}
-			<Outlet />
+			{useMainLayout ? (
+				<MainLayout>
+					<Outlet />
+				</MainLayout>
+			) : (
+				<Outlet />
+			)}
 			<TanStackDevtools
 				config={{
 					position: "bottom-right",

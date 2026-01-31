@@ -1,107 +1,49 @@
-import { Link, useNavigate } from "@tanstack/react-router";
-import { Home, LogOut, Menu, Network, ShoppingCart, X } from "lucide-react";
+import { useNavigate, useRouterState } from "@tanstack/react-router";
+import { LogOut, User } from "lucide-react";
 import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { supabaseClient } from "@/db/supabase.client";
 
+const ROUTE_TITLES: Record<string, string> = {
+	"/lists": "Listy",
+	"/sets": "Zestawy",
+	"/history": "Historia",
+};
+
 export default function Header() {
-	const [isOpen, setIsOpen] = useState(false);
+	const [open, setOpen] = useState(false);
 	const navigate = useNavigate();
+	const pathname = useRouterState({ select: (s) => s.location.pathname });
+	const title = ROUTE_TITLES[pathname] ?? "QuickShop";
 
 	const handleLogout = async () => {
 		await supabaseClient.auth.signOut();
-		setIsOpen(false);
+		setOpen(false);
 		navigate({ to: "/auth" });
 	};
 
 	return (
-		<>
-			<header className="p-4 flex items-center justify-between bg-gray-800 text-white shadow-lg">
-				<div className="flex items-center">
-					<button
-						type="button"
-						onClick={() => setIsOpen(true)}
-						className="p-2 hover:bg-gray-700 rounded-lg transition-colors"
-						aria-label="Open menu"
-					>
-						<Menu size={24} />
-					</button>
-					<h1 className="ml-4 text-xl font-semibold">QuickShop</h1>
-				</div>
-			</header>
-
-			<aside
-				className={`fixed top-0 left-0 h-full w-80 bg-gray-900 text-white shadow-2xl z-50 transform transition-transform duration-300 ease-in-out flex flex-col ${
-					isOpen ? "translate-x-0" : "-translate-x-full"
-				}`}
-			>
-				<div className="flex items-center justify-between p-4 border-b border-gray-700">
-					<h2 className="text-xl font-bold">Menu</h2>
-					<button
-						type="button"
-						onClick={() => setIsOpen(false)}
-						className="p-2 hover:bg-gray-800 rounded-lg transition-colors"
-						aria-label="Close menu"
-					>
-						<X size={24} />
-					</button>
-				</div>
-
-				<nav className="flex-1 p-4 overflow-y-auto">
-					<Link
-						to="/lists"
-						onClick={() => setIsOpen(false)}
-						className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-800 transition-colors mb-2"
-						activeProps={{
-							className:
-								"flex items-center gap-3 p-3 rounded-lg bg-cyan-600 hover:bg-cyan-700 transition-colors mb-2",
-						}}
-					>
-						<ShoppingCart size={20} />
-						<span className="font-medium">Moje Listy</span>
-					</Link>
-
-					<Link
-						to="/"
-						onClick={() => setIsOpen(false)}
-						className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-800 transition-colors mb-2"
-						activeProps={{
-							className:
-								"flex items-center gap-3 p-3 rounded-lg bg-cyan-600 hover:bg-cyan-700 transition-colors mb-2",
-						}}
-					>
-						<Home size={20} />
-						<span className="font-medium">Home</span>
-					</Link>
-
-					{/* Demo Links Start */}
-
-					<Link
-						to="/demo/tanstack-query"
-						onClick={() => setIsOpen(false)}
-						className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-800 transition-colors mb-2"
-						activeProps={{
-							className:
-								"flex items-center gap-3 p-3 rounded-lg bg-cyan-600 hover:bg-cyan-700 transition-colors mb-2",
-						}}
-					>
-						<Network size={20} />
-						<span className="font-medium">TanStack Query</span>
-					</Link>
-
-					{/* Demo Links End */}
-				</nav>
-
-				<div className="p-4 border-t border-gray-700">
-					<button
-						type="button"
-						onClick={handleLogout}
-						className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-800 transition-colors w-full text-left"
-					>
-						<LogOut size={20} />
-						<span className="font-medium">Wyloguj się</span>
-					</button>
-				</div>
-			</aside>
-		</>
+		<header className="sticky top-0 z-30 flex items-center justify-between border-b bg-background px-4 py-3">
+			<h1 className="text-lg font-semibold">{title}</h1>
+			<DropdownMenu open={open} onOpenChange={setOpen}>
+				<DropdownMenuTrigger asChild>
+					<Button variant="ghost" size="icon" aria-label="Menu użytkownika">
+						<User className="h-5 w-5" />
+					</Button>
+				</DropdownMenuTrigger>
+				<DropdownMenuContent align="end">
+					<DropdownMenuItem onClick={handleLogout}>
+						<LogOut className="mr-2 h-4 w-4" />
+						Wyloguj się
+					</DropdownMenuItem>
+				</DropdownMenuContent>
+			</DropdownMenu>
+		</header>
 	);
 }

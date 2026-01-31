@@ -9,16 +9,30 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SetsRouteImport } from './routes/sets'
 import { Route as ListsRouteImport } from './routes/lists'
+import { Route as HistoryRouteImport } from './routes/history'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as SetsIndexRouteImport } from './routes/sets.index'
 import { Route as ListsIndexRouteImport } from './routes/lists.index'
+import { Route as SetsSetIdRouteImport } from './routes/sets.$setId'
 import { Route as ListsListIdRouteImport } from './routes/lists.$listId'
 import { Route as DemoTanstackQueryRouteImport } from './routes/demo/tanstack-query'
 
+const SetsRoute = SetsRouteImport.update({
+  id: '/sets',
+  path: '/sets',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ListsRoute = ListsRouteImport.update({
   id: '/lists',
   path: '/lists',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HistoryRoute = HistoryRouteImport.update({
+  id: '/history',
+  path: '/history',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthRoute = AuthRouteImport.update({
@@ -31,10 +45,20 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SetsIndexRoute = SetsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => SetsRoute,
+} as any)
 const ListsIndexRoute = ListsIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => ListsRoute,
+} as any)
+const SetsSetIdRoute = SetsSetIdRouteImport.update({
+  id: '/$setId',
+  path: '/$setId',
+  getParentRoute: () => SetsRoute,
 } as any)
 const ListsListIdRoute = ListsListIdRouteImport.update({
   id: '/$listId',
@@ -50,62 +74,105 @@ const DemoTanstackQueryRoute = DemoTanstackQueryRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/history': typeof HistoryRoute
   '/lists': typeof ListsRouteWithChildren
+  '/sets': typeof SetsRouteWithChildren
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
   '/lists/$listId': typeof ListsListIdRoute
+  '/sets/$setId': typeof SetsSetIdRoute
   '/lists/': typeof ListsIndexRoute
+  '/sets/': typeof SetsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/history': typeof HistoryRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
   '/lists/$listId': typeof ListsListIdRoute
+  '/sets/$setId': typeof SetsSetIdRoute
   '/lists': typeof ListsIndexRoute
+  '/sets': typeof SetsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/history': typeof HistoryRoute
   '/lists': typeof ListsRouteWithChildren
+  '/sets': typeof SetsRouteWithChildren
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
   '/lists/$listId': typeof ListsListIdRoute
+  '/sets/$setId': typeof SetsSetIdRoute
   '/lists/': typeof ListsIndexRoute
+  '/sets/': typeof SetsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/auth'
+    | '/history'
     | '/lists'
+    | '/sets'
     | '/demo/tanstack-query'
     | '/lists/$listId'
+    | '/sets/$setId'
     | '/lists/'
+    | '/sets/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/demo/tanstack-query' | '/lists/$listId' | '/lists'
+  to:
+    | '/'
+    | '/auth'
+    | '/history'
+    | '/demo/tanstack-query'
+    | '/lists/$listId'
+    | '/sets/$setId'
+    | '/lists'
+    | '/sets'
   id:
     | '__root__'
     | '/'
     | '/auth'
+    | '/history'
     | '/lists'
+    | '/sets'
     | '/demo/tanstack-query'
     | '/lists/$listId'
+    | '/sets/$setId'
     | '/lists/'
+    | '/sets/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthRoute: typeof AuthRoute
+  HistoryRoute: typeof HistoryRoute
   ListsRoute: typeof ListsRouteWithChildren
+  SetsRoute: typeof SetsRouteWithChildren
   DemoTanstackQueryRoute: typeof DemoTanstackQueryRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/sets': {
+      id: '/sets'
+      path: '/sets'
+      fullPath: '/sets'
+      preLoaderRoute: typeof SetsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/lists': {
       id: '/lists'
       path: '/lists'
       fullPath: '/lists'
       preLoaderRoute: typeof ListsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/history': {
+      id: '/history'
+      path: '/history'
+      fullPath: '/history'
+      preLoaderRoute: typeof HistoryRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth': {
@@ -122,12 +189,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/sets/': {
+      id: '/sets/'
+      path: '/'
+      fullPath: '/sets/'
+      preLoaderRoute: typeof SetsIndexRouteImport
+      parentRoute: typeof SetsRoute
+    }
     '/lists/': {
       id: '/lists/'
       path: '/'
       fullPath: '/lists/'
       preLoaderRoute: typeof ListsIndexRouteImport
       parentRoute: typeof ListsRoute
+    }
+    '/sets/$setId': {
+      id: '/sets/$setId'
+      path: '/$setId'
+      fullPath: '/sets/$setId'
+      preLoaderRoute: typeof SetsSetIdRouteImport
+      parentRoute: typeof SetsRoute
     }
     '/lists/$listId': {
       id: '/lists/$listId'
@@ -158,10 +239,24 @@ const ListsRouteChildren: ListsRouteChildren = {
 
 const ListsRouteWithChildren = ListsRoute._addFileChildren(ListsRouteChildren)
 
+interface SetsRouteChildren {
+  SetsSetIdRoute: typeof SetsSetIdRoute
+  SetsIndexRoute: typeof SetsIndexRoute
+}
+
+const SetsRouteChildren: SetsRouteChildren = {
+  SetsSetIdRoute: SetsSetIdRoute,
+  SetsIndexRoute: SetsIndexRoute,
+}
+
+const SetsRouteWithChildren = SetsRoute._addFileChildren(SetsRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthRoute: AuthRoute,
+  HistoryRoute: HistoryRoute,
   ListsRoute: ListsRouteWithChildren,
+  SetsRoute: SetsRouteWithChildren,
   DemoTanstackQueryRoute: DemoTanstackQueryRoute,
 }
 export const routeTree = rootRouteImport
