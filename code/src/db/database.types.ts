@@ -279,6 +279,10 @@ export type Database = {
 				Args: { p_list_id: string; p_user_id: string };
 				Returns: undefined;
 			};
+			invite_member_to_set: {
+				Args: { p_set_id: string; p_user_id: string };
+				Returns: undefined;
+			};
 		};
 		Enums: {
 			[_ in never]: never;

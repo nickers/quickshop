@@ -15,6 +15,11 @@ export interface ISetsService {
 	getAllSets(): Promise<ShoppingSet[]>;
 
 	/**
+	 * Fetches a single set by ID (RLS ensures user has access via set_members).
+	 */
+	getSetById(setId: UUID): Promise<ShoppingSet>;
+
+	/**
 	 * Fetches items belonging to a specific set.
 	 */
 	getSetItems(setId: UUID): Promise<SetItem[]>;
@@ -48,6 +53,14 @@ export interface ISetsService {
 	deleteSetItem(itemId: UUID): Promise<void>;
 
 	/**
+	 * Updates a set (name, description).
+	 */
+	updateSet(
+		setId: UUID,
+		data: Partial<Pick<ShoppingSet, "name" | "description">>,
+	): Promise<ShoppingSet>;
+
+	/**
 	 * Deletes a set.
 	 */
 	deleteSet(setId: UUID): Promise<void>;
@@ -76,6 +89,17 @@ export class SetsService implements ISetsService {
 			.select("*")
 			.in("id", setIds)
 			.order("name", { ascending: true });
+
+		if (error) throw error;
+		return data;
+	}
+
+	async getSetById(setId: UUID): Promise<ShoppingSet> {
+		const { data, error } = await supabaseClient
+			.from("sets")
+			.select("*")
+			.eq("id", setId)
+			.single();
 
 		if (error) throw error;
 		return data;
@@ -204,6 +228,21 @@ export class SetsService implements ISetsService {
 			.eq("id", itemId);
 
 		if (error) throw error;
+	}
+
+	async updateSet(
+		setId: UUID,
+		data: Partial<Pick<ShoppingSet, "name" | "description">>,
+	): Promise<ShoppingSet> {
+		const { data: updatedSet, error } = await supabaseClient
+			.from("sets")
+			.update(data)
+			.eq("id", setId)
+			.select()
+			.single();
+
+		if (error) throw error;
+		return updatedSet;
 	}
 
 	async deleteSet(setId: UUID): Promise<void> {
