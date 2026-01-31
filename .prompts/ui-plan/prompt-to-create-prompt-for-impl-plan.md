@@ -10,7 +10,7 @@ Do realizacji zadania możesz wczytać dane z plików:
 - @.ai/tech-stack.md
 - @.ai/business-logic-plan.md
 - @.ai/ui-plan.md
-- @.prompts/ui-plan-prompt.md
+- @.prompts/ui-plan/template.md
 - @.code/src/**
 
 
