@@ -43,7 +43,7 @@ function ListsView() {
 	} = useListsView();
 
 	return (
-		<div className="container mx-auto p-4 pb-20">
+		<div className="space-y-6">
 			<ListsHeader onCreateClick={() => setIsCreateDialogOpen(true)} />
 
 			{/* Loading state */}
@@ -72,6 +72,7 @@ function ListsView() {
 					currentUserId={currentUserId}
 					onListClick={handleListClick}
 					onDeleteClick={handleDeleteList}
+					onCreateClick={() => setIsCreateDialogOpen(true)}
 				/>
 			)}
 

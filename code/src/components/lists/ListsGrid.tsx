@@ -1,4 +1,5 @@
-import { ShoppingBasket } from "lucide-react";
+import { Plus, ShoppingBasket } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import type { ListViewModel } from "@/types/domain.types";
 import { ListCard } from "./ListCard";
 
@@ -7,6 +8,7 @@ interface ListsGridProps {
 	currentUserId: string | null;
 	onListClick: (listId: string) => void;
 	onDeleteClick: (listId: string) => void;
+	onCreateClick?: () => void;
 }
 
 /**
@@ -18,8 +20,9 @@ export function ListsGrid({
 	currentUserId,
 	onListClick,
 	onDeleteClick,
+	onCreateClick,
 }: ListsGridProps) {
-	// Empty state
+	// Empty state: komunikat + przycisk "Nowa lista" (impl-plan-03, ui-plan §2.2)
 	if (lists.length === 0) {
 		return (
 			<div className="flex flex-col items-center justify-center py-12 text-center">
@@ -30,16 +33,21 @@ export function ListsGrid({
 					Nie masz jeszcze żadnych list
 				</h2>
 				<p className="mb-6 max-w-md text-muted-foreground">
-					Kliknij przycisk "Nowa lista", aby utworzyć pierwszą listę zakupów i
-					zacząć organizować swoje zakupy.
+					Utwórz pierwszą listę zakupów i zacznij organizować swoje zakupy.
 				</p>
+				{onCreateClick && (
+					<Button onClick={onCreateClick} size="default">
+						<Plus className="mr-2 h-4 w-4" />
+						Nowa lista
+					</Button>
+				)}
 			</div>
 		);
 	}
 
-	// Grid with lists
+	// Jedna kolumna – karty na pełną szerokość, bez efektu „ściśniętych kolumn” (max-w-md)
 	return (
-		<div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+		<div className="grid grid-cols-1 gap-4">
 			{lists.map((list) => (
 				<ListCard
 					key={list.id}
