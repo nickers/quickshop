@@ -11,6 +11,11 @@ import { fileURLToPath, URL } from 'node:url'
 export default defineConfig({
   test: {
     passWithNoTests: true,
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'json-summary'],
+      outputDir: 'coverage',
+    },
   },
   plugins: [
     devtools(),

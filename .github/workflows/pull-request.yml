@@ -1,0 +1,123 @@
+# Pull Request: lint → unit-test (with coverage) → status-comment.
+# status-comment runs only when lint and unit-test succeed.
+# See .cursor/rules/github-action.mdc for conventions.
+
+name: Pull Request
+
+on:
+  pull_request:
+    branches: [main]
+
+env:
+  NODE_VERSION: '20'
+  WORKING_DIR: code
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup Node and npm
+        uses: ./.github/actions/setup-node-npm
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          working-directory: ${{ env.WORKING_DIR }}
+
+      - name: Lint
+        run: npm run lint
+        working-directory: ${{ env.WORKING_DIR }}
+
+  unit-test:
+    name: Unit tests
+    runs-on: ubuntu-latest
+    needs: [lint]
+    steps:
+      - name: Setup Node and npm
+        uses: ./.github/actions/setup-node-npm
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          working-directory: ${{ env.WORKING_DIR }}
+
+      - name: Run tests with coverage
+        run: npx vitest run --coverage
+        working-directory: ${{ env.WORKING_DIR }}
+
+      - name: Upload coverage summary
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-summary
+          path: ${{ env.WORKING_DIR }}/coverage/coverage-summary.json
+          retention-days: 1
+
+  status-comment:
+    name: PR status comment
+    runs-on: ubuntu-latest
+    needs: [lint, unit-test]
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+    steps:
+      - name: Download coverage summary
+        uses: actions/download-artifact@v4
+        with:
+          name: coverage-summary
+
+      - name: Comment PR with status
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const fs = require('fs');
+            let coverageBody = '';
+            const summaryPath = ['coverage-summary/code/coverage/coverage-summary.json', 'coverage-summary/coverage-summary.json'].find(p => {
+              try { fs.accessSync(p); return true; } catch { return false; }
+            });
+            try {
+              const summary = summaryPath ? JSON.parse(fs.readFileSync(summaryPath, 'utf8')) : {};
+              const total = summary.total || {};
+              const pct = (k) => (total[k] && total[k].pct != null) ? total[k].pct : '—';
+              coverageBody = [
+                '| Metric | Coverage |',
+                '|--------|----------|',
+                `| Statements | ${pct('statements')}% |`,
+                `| Branches | ${pct('branches')}% |`,
+                `| Functions | ${pct('functions')}% |`,
+                `| Lines | ${pct('lines')}% |`,
+              ].join('\n');
+            } catch (e) {
+              coverageBody = 'Coverage summary not available.';
+            }
+            const body = `## Pull Request CI - All checks passed
+
+            ### Lint
+            - **Status:** Success
+
+            ### Unit tests
+            - **Status:** Success
+
+            ### Coverage
+            ${coverageBody}
+            `;
+            const pr = context.payload.pull_request;
+            if (!pr) return;
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: pr.number,
+            });
+            const botComment = comments.find(c => c.user.type === 'Bot' && c.body && c.body.includes('Pull Request CI - All checks passed'));
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: pr.number,
+                body,
+              });
+            }
