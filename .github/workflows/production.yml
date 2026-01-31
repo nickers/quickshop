@@ -1,7 +1,6 @@
-# Production pipeline: lint + unit-test (one job) → build.
-# Uses environment "Production" for build (env vars from repo Settings → Environments).
-# Deployment step to be added later.
-# See .cursor/rules/github-action.mdc for conventions.
+# Production pipeline: lint + unit-test → build → deploy to Cloudflare Pages.
+# Build and deploy use environment "Production" (vars/secrets in Settings → Environments).
+# See .cursor/rules/github-action.mdc and .github/docs/production-environment.md.
 
 name: Production
 
@@ -48,8 +47,6 @@ jobs:
     needs: [lint-and-test]
     environment: Production
     env:
-      # Vite embeds these at build time (same as .env.local locally).
-      # Configure in repo: Settings → Environments → Production.
       VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
       VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.VITE_SUPABASE_PUBLISHABLE_KEY }}
     steps:
@@ -72,3 +69,24 @@ jobs:
           name: dist
           path: ${{ env.WORKING_DIR }}/dist
           retention-days: 7
+
+  deploy:
+    name: Deploy to Cloudflare Pages
+    runs-on: ubuntu-latest
+    needs: [build]
+    environment: Production
+    permissions:
+      contents: read
+      deployments: write
+    steps:
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy dist --project-name=${{ vars.CLOUDFLARE_PAGES_PROJECT_NAME }}
