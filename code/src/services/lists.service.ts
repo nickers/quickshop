@@ -120,9 +120,7 @@ export class ListsService implements IListService {
 			// If adding member fails, we should probably delete the list
 			// to maintain consistency, but for now just throw the error
 			console.error("Failed to add creator to list_members:", memberError);
-			throw new Error(
-				"Failed to add user as list member. Please try again.",
-			);
+			throw new Error("Failed to add user as list member. Please try again.");
 		}
 
 		return newList;

@@ -1,11 +1,11 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
+import { CreateListDialog } from "@/components/lists/CreateListDialog";
+import { ListsGrid } from "@/components/lists/ListsGrid";
+import { ListsHeader } from "@/components/lists/ListsHeader";
+import { Button } from "@/components/ui/button";
 import { supabaseClient } from "@/db/supabase.client";
 import { useListsView } from "@/hooks/useListsView";
-import { ListsHeader } from "@/components/lists/ListsHeader";
-import { ListsGrid } from "@/components/lists/ListsGrid";
-import { CreateListDialog } from "@/components/lists/CreateListDialog";
-import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/lists")({
 	component: ListsView,

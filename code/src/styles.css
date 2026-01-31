@@ -135,3 +135,7 @@ code {
     @apply bg-background text-foreground;
   }
 }
+
+.pb-safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 1rem);
+}

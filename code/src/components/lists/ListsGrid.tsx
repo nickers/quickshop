@@ -1,6 +1,6 @@
 import { ShoppingBasket } from "lucide-react";
-import { ListCard } from "./ListCard";
 import type { ListViewModel } from "@/types/domain.types";
+import { ListCard } from "./ListCard";
 
 interface ListsGridProps {
 	lists: ListViewModel[];

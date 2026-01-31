@@ -1,10 +1,11 @@
-import { MoreVertical, ShoppingCart, User, Trash2 } from "lucide-react";
+import { MoreVertical, ShoppingCart, Trash2, User } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
 	Card,
+	CardAction,
+	CardContent,
 	CardHeader,
 	CardTitle,
-	CardContent,
-	CardAction,
 } from "@/components/ui/card";
 import {
 	DropdownMenu,
@@ -12,7 +13,6 @@ import {
 	DropdownMenuItem,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Button } from "@/components/ui/button";
 import type { ListViewModel } from "@/types/domain.types";
 
 interface ListCardProps {
@@ -26,11 +26,7 @@ interface ListCardProps {
  * Card component representing a single shopping list.
  * Displays list name, owner info (if shared), item counts, and action menu.
  */
-export function ListCard({
-	list,
-	onClick,
-	onDeleteClick,
-}: ListCardProps) {
+export function ListCard({ list, onClick, onDeleteClick }: ListCardProps) {
 	const handleCardClick = () => {
 		onClick(list.id);
 	};
@@ -93,9 +89,7 @@ export function ListCard({
 				{list.isShared && (
 					<div className="flex items-center text-sm text-muted-foreground">
 						<User className="mr-2 h-4 w-4" />
-						<span>
-							Właściciel: {list.ownerName || "Współdzielona lista"}
-						</span>
+						<span>Właściciel: {list.ownerName || "Współdzielona lista"}</span>
 					</div>
 				)}
 

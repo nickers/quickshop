@@ -1,4 +1,5 @@
-import { useState, type FormEvent } from "react";
+import { type FormEvent, useId, useState } from "react";
+import { Button } from "@/components/ui/button";
 import {
 	Dialog,
 	DialogContent,
@@ -7,7 +8,6 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import type { CreateListDTO } from "@/types/domain.types";
@@ -31,6 +31,7 @@ export function CreateListDialog({
 }: CreateListDialogProps) {
 	const [name, setName] = useState("");
 	const [error, setError] = useState<string | null>(null);
+	const listNameId = useId();
 
 	// Validation
 	const isNameValid = name.trim().length > 0 && name.trim().length <= 100;
@@ -96,9 +97,9 @@ export function CreateListDialog({
 				<form onSubmit={handleSubmit}>
 					<div className="grid gap-4 py-4">
 						<div className="grid gap-2">
-							<Label htmlFor="list-name">Nazwa listy</Label>
+							<Label htmlFor={listNameId}>Nazwa listy</Label>
 							<Input
-								id="list-name"
+								id={listNameId}
 								type="text"
 								placeholder="np. Zakupy tygodniowe"
 								value={name}

@@ -1,9 +1,9 @@
-import { useState, useEffect } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
 import { supabaseClient } from "@/db/supabase.client";
-import { listsService } from "@/services/lists.service";
 import { listItemsService } from "@/services/items.service";
+import { listsService } from "@/services/lists.service";
 import type { CreateListDTO, ListViewModel } from "@/types/domain.types";
 
 /**
@@ -54,10 +54,7 @@ export function useListsView() {
 							ownerName: undefined, // TODO: Implement owner name fetching with join
 						} as ListViewModel;
 					} catch (error) {
-						console.error(
-							`Failed to fetch items for list ${list.id}:`,
-							error,
-						);
+						console.error(`Failed to fetch items for list ${list.id}:`, error);
 						// Return list with zero counts if fetching items fails
 						return {
 							...list,
@@ -101,8 +98,9 @@ export function useListsView() {
 			await queryClient.cancelQueries({ queryKey: listQueryKeys.all });
 
 			// Snapshot the previous value
-			const previousLists =
-				queryClient.getQueryData<ListViewModel[]>(listQueryKeys.all);
+			const previousLists = queryClient.getQueryData<ListViewModel[]>(
+				listQueryKeys.all,
+			);
 
 			// Optimistically update to remove the list
 			queryClient.setQueryData<ListViewModel[]>(

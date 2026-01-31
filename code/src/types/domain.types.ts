@@ -76,3 +76,24 @@ export interface ListViewModel extends ShoppingList {
 	 */
 	ownerName?: string;
 }
+
+// Reprezentacja stanu konfliktu przy dodawaniu zestawu
+export interface SetConflictItem {
+	existingItem: ListItem;
+	newItemCandidate: CreateListItemDTO;
+	// Sugerowana nowa ilość (np. konkatenacja stringów)
+	suggestedQuantity: string;
+}
+
+// Wynik rozwiązania konfliktu zestawu
+export interface SetResolutionResult {
+	itemsToCreate: CreateListItemDTO[]; // Produkty bez konfliktów + zaakceptowane nowe
+	itemsToUpdate: { itemId: UUID; newQuantity: string }[]; // Produkty zaktualizowane
+}
+
+// Stan modala konfliktu pojedynczego
+export interface SingleItemConflictState {
+	isOpen: boolean;
+	conflictingItem?: ListItem;
+	pendingName?: string; // Nazwa którą użytkownik próbował dodać
+}
