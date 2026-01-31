@@ -14,6 +14,8 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { supabaseClient } from "@/db/supabase.client";
 import { useListDetails } from "@/hooks/useListDetails";
 
@@ -26,7 +28,11 @@ function ListDetailsPage() {
 	const navigate = useNavigate();
 	const [archiveConfirmOpen, setArchiveConfirmOpen] = useState(false);
 	const [sharePlaceholderOpen, setSharePlaceholderOpen] = useState(false);
+	const [renameDialogOpen, setRenameDialogOpen] = useState(false);
+	const [renameInputValue, setRenameInputValue] = useState("");
+	const [createSetPlaceholderOpen, setCreateSetPlaceholderOpen] = useState(false);
 	const [isArchiving, setIsArchiving] = useState(false);
+	const [isRenaming, setIsRenaming] = useState(false);
 
 	// Auth check
 	useEffect(() => {
@@ -56,6 +62,8 @@ function ListDetailsPage() {
 		cancelConflict,
 		isSubmitting,
 		archiveList,
+		renameList,
+		reorderItems,
 	} = useListDetails(listId);
 
 	const handleArchiveConfirm = async () => {
@@ -69,6 +77,25 @@ function ListDetailsPage() {
 			console.error("Archive failed:", err);
 		} finally {
 			setIsArchiving(false);
+		}
+	};
+
+	const handleRenameOpen = () => {
+		setRenameInputValue(list?.name ?? "");
+		setRenameDialogOpen(true);
+	};
+
+	const handleRenameConfirm = async () => {
+		const trimmed = renameInputValue.trim();
+		if (!trimmed || !renameList) return;
+		setIsRenaming(true);
+		try {
+			await renameList(trimmed);
+			setRenameDialogOpen(false);
+		} catch (err) {
+			console.error("Rename failed:", err);
+		} finally {
+			setIsRenaming(false);
 		}
 	};
 
@@ -99,8 +126,8 @@ function ListDetailsPage() {
 				list={list}
 				onShare={() => setSharePlaceholderOpen(true)}
 				onArchive={() => setArchiveConfirmOpen(true)}
-				onCreateSet={() => {}}
-				onRename={() => {}}
+				onCreateSet={() => setCreateSetPlaceholderOpen(true)}
+				onRename={handleRenameOpen}
 			/>
 
 			<div className="flex-1 overflow-y-auto">
@@ -108,6 +135,7 @@ function ListDetailsPage() {
 					items={activeItems}
 					onToggle={toggleItem}
 					onDelete={deleteItem}
+					onReorder={reorderItems}
 					pendingIds={pendingIds}
 				/>
 
@@ -168,6 +196,70 @@ function ListDetailsPage() {
 					</DialogHeader>
 					<DialogFooter>
 						<Button onClick={() => setSharePlaceholderOpen(false)}>OK</Button>
+					</DialogFooter>
+				</DialogContent>
+			</Dialog>
+
+			{/* Zmień nazwę listy */}
+			<Dialog open={renameDialogOpen} onOpenChange={setRenameDialogOpen}>
+				<DialogContent className="sm:max-w-[425px]">
+					<DialogHeader>
+						<DialogTitle>Zmień nazwę listy</DialogTitle>
+						<DialogDescription>
+							Wprowadź nową nazwę listy.
+						</DialogDescription>
+					</DialogHeader>
+					<div className="grid gap-4 py-4">
+						<div className="grid gap-2">
+							<Label htmlFor="rename-list-input">Nazwa</Label>
+							<Input
+								id="rename-list-input"
+								value={renameInputValue}
+								onChange={(e) => setRenameInputValue(e.target.value)}
+								placeholder="np. Zakupy tygodniowe"
+								onKeyDown={(e) => {
+									if (e.key === "Enter") {
+										e.preventDefault();
+										handleRenameConfirm();
+									}
+								}}
+							/>
+						</div>
+					</div>
+					<DialogFooter>
+						<Button
+							variant="outline"
+							onClick={() => setRenameDialogOpen(false)}
+							disabled={isRenaming}
+						>
+							Anuluj
+						</Button>
+						<Button
+							onClick={handleRenameConfirm}
+							disabled={isRenaming || !renameInputValue.trim()}
+						>
+							{isRenaming ? "Zapisywanie..." : "Zapisz"}
+						</Button>
+					</DialogFooter>
+				</DialogContent>
+			</Dialog>
+
+			{/* Utwórz zestaw: placeholder (część zestawów) */}
+			<Dialog
+				open={createSetPlaceholderOpen}
+				onOpenChange={setCreateSetPlaceholderOpen}
+			>
+				<DialogContent className="sm:max-w-[425px]">
+					<DialogHeader>
+						<DialogTitle>Utwórz zestaw z listy</DialogTitle>
+						<DialogDescription>
+							Funkcja dostępna wkrótce (w ramach zakładki Zestawy).
+						</DialogDescription>
+					</DialogHeader>
+					<DialogFooter>
+						<Button onClick={() => setCreateSetPlaceholderOpen(false)}>
+							OK
+						</Button>
 					</DialogFooter>
 				</DialogContent>
 			</Dialog>

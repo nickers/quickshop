@@ -184,6 +184,46 @@ export function useListDetails(listId: string) {
 		},
 	});
 
+	const reorderItemsMutation = useMutation({
+		mutationKey: ["list-items", "reorder", listId],
+		scope: { id: `list-${listId}` },
+		mutationFn: (orderedItems: ListItem[]) => {
+			const payload = orderedItems.map((item, index) => ({
+				id: item.id,
+				sort_order: index,
+			}));
+			return listItemsService.reorderItems(payload);
+		},
+		networkMode: "offlineFirst",
+		onMutate: async (orderedItems) => {
+			await queryClient.cancelQueries({ queryKey: ["list-items", listId] });
+			const previousItems = queryClient.getQueryData<ListItem[]>([
+				"list-items",
+				listId,
+			]);
+			// Reorder: active items get new order, completed stay at end with original relative order
+			const completed = (previousItems ?? []).filter((i) => i.is_bought);
+			const reorderedActive = orderedItems.map((item, index) => ({
+				...item,
+				sort_order: index,
+			}));
+			const completedWithOrder = completed.map((item, index) => ({
+				...item,
+				sort_order: orderedItems.length + index,
+			}));
+			queryClient.setQueryData<ListItem[]>(["list-items", listId], () => [
+				...reorderedActive,
+				...completedWithOrder,
+			]);
+			return { previousItems };
+		},
+		onError: (err, _variables, context) => {
+			if (context?.previousItems && !isNetworkError(err)) {
+				queryClient.setQueryData(["list-items", listId], context.previousItems);
+			}
+		},
+	});
+
 	// Handlers
 	const handleAddItem = async (name: string) => {
 		// Check for duplicates (case-insensitive) in active items
@@ -243,10 +283,23 @@ export function useListDetails(listId: string) {
 		});
 	};
 
+	const handleReorderItems = (orderedActiveItems: ListItem[]) => {
+		// Only reorder active items; completed items stay at end
+		reorderItemsMutation.mutate(orderedActiveItems);
+	};
+
 	const archiveList = async () => {
 		await listsService.completeShoppingTrip(listId);
 		queryClient.invalidateQueries({ queryKey: ["list", listId] });
 		queryClient.invalidateQueries({ queryKey: ["list-items", listId] });
+		queryClient.invalidateQueries({ queryKey: listQueryKeys.all });
+	};
+
+	const renameList = async (newName: string) => {
+		const trimmed = newName.trim();
+		if (!trimmed) return;
+		await listsService.updateList(listId, { name: trimmed });
+		queryClient.invalidateQueries({ queryKey: ["list", listId] });
 		queryClient.invalidateQueries({ queryKey: listQueryKeys.all });
 	};
 
@@ -265,5 +318,8 @@ export function useListDetails(listId: string) {
 		cancelConflict: () => setConflictState({ isOpen: false }),
 		isSubmitting: createItemMutation.isPending || updateItemMutation.isPending,
 		archiveList,
+		renameList,
+		reorderItems: handleReorderItems,
+		isReordering: reorderItemsMutation.isPending,
 	};
 }

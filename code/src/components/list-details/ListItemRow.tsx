@@ -15,6 +15,14 @@ interface ListItemRowProps {
 	onDelete: (id: string) => void;
 	/** Elementy niesynchronizowane – obniżona opacity (optimistic UI) */
 	isPending?: boolean;
+	/** Opcjonalne atrybuty i listenery dla drag handle (drag-and-drop) */
+	dragHandleProps?: {
+		attributes?: Record<string, unknown>;
+		listeners?: Record<string, unknown>;
+		setActivatorNodeRef?: (element: HTMLElement | null) => void;
+	};
+	/** Czy wiersz jest właśnie przeciągany */
+	isDragging?: boolean;
 }
 
 export function ListItemRow({
@@ -22,13 +30,28 @@ export function ListItemRow({
 	onToggle,
 	onDelete,
 	isPending = false,
+	dragHandleProps,
+	isDragging = false,
 }: ListItemRowProps) {
+	const grip = (
+		<div
+			ref={dragHandleProps?.setActivatorNodeRef}
+			className="text-muted-foreground cursor-grab active:cursor-grabbing shrink-0 touch-none"
+			aria-hidden
+			{...(dragHandleProps?.attributes ?? {})}
+			{...(dragHandleProps?.listeners ?? {})}
+		>
+			<GripVertical className="h-4 w-4" />
+		</div>
+	);
+
 	return (
 		<div
 			className={cn(
 				"flex items-center gap-3 p-3 bg-card border rounded-lg mb-2 transition-opacity",
 				item.is_bought && "opacity-60 bg-muted/50",
 				isPending && "opacity-70",
+				isDragging && "opacity-80 shadow-md z-10",
 			)}
 		>
 			<Checkbox
@@ -52,12 +75,7 @@ export function ListItemRow({
 				)}
 			</div>
 
-			<div
-				className="text-muted-foreground cursor-grab active:cursor-grabbing shrink-0"
-				aria-hidden
-			>
-				<GripVertical className="h-4 w-4" />
-			</div>
+			{grip}
 
 			<DropdownMenu>
 				<DropdownMenuTrigger asChild>
