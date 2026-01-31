@@ -12,6 +12,7 @@ interface SetsGridProps {
 	onAddToList: (setId: string) => void;
 	onCreateSet?: () => void;
 	onSetClick?: (setId: string) => void;
+	onDeleteClick?: (setId: string) => void;
 }
 
 /**
@@ -22,6 +23,7 @@ export function SetsGrid({
 	onAddToList,
 	onCreateSet,
 	onSetClick,
+	onDeleteClick,
 }: SetsGridProps) {
 	if (sets.length === 0) {
 		return (
@@ -54,6 +56,7 @@ export function SetsGrid({
 					itemCount={set.itemCount}
 					onAddToList={onAddToList}
 					onSetClick={onSetClick}
+					onDeleteClick={onDeleteClick}
 				/>
 			))}
 		</div>

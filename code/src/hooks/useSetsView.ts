@@ -32,6 +32,13 @@ export function useSetsView() {
 		},
 	});
 
+	const deleteSetMutation = useMutation({
+		mutationFn: (setId: string) => setsService.deleteSet(setId),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: setQueryKeys.all });
+		},
+	});
+
 	return {
 		sets,
 		isLoading,
@@ -40,5 +47,6 @@ export function useSetsView() {
 		queryClient,
 		createSet: createSetMutation.mutateAsync,
 		isCreatingSet: createSetMutation.isPending,
+		deleteSet: deleteSetMutation.mutateAsync,
 	};
 }

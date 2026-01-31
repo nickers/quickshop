@@ -71,7 +71,7 @@ export function ListCard({ list, onClick, onDeleteClick }: ListCardProps) {
 								<span className="sr-only">Otwórz menu</span>
 							</Button>
 						</DropdownMenuTrigger>
-						<DropdownMenuContent align="end">
+						<DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
 							<DropdownMenuItem
 								className="text-red-600 focus:text-red-600"
 								onSelect={handleDeleteClick}

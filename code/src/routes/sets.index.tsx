@@ -31,7 +31,7 @@ function SetsIndexPage() {
 		checkAuth();
 	}, [navigate]);
 
-	const { sets, isLoading, error, refetch, createSet, isCreatingSet } =
+	const { sets, isLoading, error, refetch, createSet, isCreatingSet, deleteSet } =
 		useSetsView();
 
 	const handleAddToList = (setId: string) => {
@@ -46,6 +46,14 @@ function SetsIndexPage() {
 		if (!open) {
 			setAddDialogSetId(null);
 			setAddDialogSetName("");
+		}
+	};
+
+	const handleDeleteSet = async (setId: string) => {
+		try {
+			await deleteSet(setId);
+		} catch (err) {
+			console.error("Delete set failed:", err);
 		}
 	};
 
@@ -81,6 +89,7 @@ function SetsIndexPage() {
 				onSetClick={(setId) =>
 					navigate({ to: "/sets/$setId", params: { setId } })
 				}
+				onDeleteClick={handleDeleteSet}
 			/>
 
 			<AddSetToListDialog
