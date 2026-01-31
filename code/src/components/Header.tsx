@@ -8,19 +8,23 @@ import {
 	DropdownMenuItem,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { cn } from "@/lib/utils";
 import { supabaseClient } from "@/db/supabase.client";
 
-const ROUTE_TITLES: Record<string, string> = {
-	"/lists": "Listy",
-	"/sets": "Zestawy",
-	"/history": "Historia",
-};
+function getTitle(pathname: string): string {
+	if (pathname === "/sets" || pathname.startsWith("/sets/")) return "Zestawy";
+	if (pathname === "/lists" || pathname.startsWith("/lists")) return "Listy";
+	if (pathname === "/history") return "Historia";
+	return "QuickShop";
+}
 
 export default function Header() {
 	const [open, setOpen] = useState(false);
 	const navigate = useNavigate();
 	const pathname = useRouterState({ select: (s) => s.location.pathname });
-	const title = ROUTE_TITLES[pathname] ?? "QuickShop";
+	const title = getTitle(pathname);
+	const isSetsRoute =
+		pathname === "/sets" || pathname.startsWith("/sets/");
 
 	const handleLogout = async () => {
 		await supabaseClient.auth.signOut();
@@ -29,7 +33,12 @@ export default function Header() {
 	};
 
 	return (
-		<header className="sticky top-0 z-30 flex items-center justify-between border-b bg-background px-4 py-3">
+		<header
+			className={cn(
+				"sticky top-0 z-30 flex items-center justify-between border-b bg-background px-4 py-3",
+				isSetsRoute && "border-primary/30 bg-primary/5",
+			)}
+		>
 			<h1 className="text-lg font-semibold">{title}</h1>
 			<DropdownMenu open={open} onOpenChange={setOpen}>
 				<DropdownMenuTrigger asChild>

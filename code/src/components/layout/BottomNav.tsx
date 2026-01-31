@@ -17,7 +17,9 @@ export function BottomNav() {
 		>
 			<div className="container mx-auto flex max-w-md justify-around">
 				{navItems.map(({ to, label, icon: Icon }) => {
-					const isCurrent = pathname === to;
+					const isCurrent =
+						pathname === to ||
+						(to === "/sets" && pathname.startsWith("/sets/"));
 					return (
 						<Link
 							key={to}

@@ -55,9 +55,26 @@ export interface ISetsService {
 
 export class SetsService implements ISetsService {
 	async getAllSets(): Promise<ShoppingSet[]> {
+		// Same pattern as lists: query set_members first (no recursion), then sets by ID
+		const {
+			data: { user },
+		} = await supabaseClient.auth.getUser();
+		if (!user) throw new Error("User must be logged in");
+
+		const { data: memberData, error: memberError } = await supabaseClient
+			.from("set_members")
+			.select("set_id")
+			.eq("user_id", user.id);
+
+		if (memberError) throw memberError;
+		if (!memberData || memberData.length === 0) return [];
+
+		const setIds = memberData.map((m) => m.set_id);
+
 		const { data, error } = await supabaseClient
 			.from("sets")
 			.select("*")
+			.in("id", setIds)
 			.order("name", { ascending: true });
 
 		if (error) throw error;
@@ -93,6 +110,23 @@ export class SetsService implements ISetsService {
 			.single();
 
 		if (error) throw error;
+
+		// Add creator to set_members (avoids RLS recursion; same pattern as lists)
+		const { error: memberError } = await supabaseClient.rpc(
+			"invite_member_to_set",
+			{
+				p_set_id: newSet.id,
+				p_user_id: user.id,
+			},
+		);
+
+		if (memberError) {
+			console.error("Failed to add creator to set_members:", memberError);
+			throw new Error(
+				"Nie udało się dodać użytkownika do zestawu. Spróbuj ponownie.",
+			);
+		}
+
 		return newSet;
 	}
 
