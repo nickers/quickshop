@@ -1,5 +1,12 @@
 import { Link } from "@tanstack/react-router";
-import { Archive, ArrowLeft, Copy, MoreVertical, Share2 } from "lucide-react";
+import {
+	Archive,
+	ArrowLeft,
+	Copy,
+	MoreVertical,
+	Pencil,
+	Share2,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
 	DropdownMenu,
@@ -16,6 +23,7 @@ interface ListDetailsHeaderProps {
 	onShare: () => void;
 	onArchive: () => void;
 	onCreateSet: () => void;
+	onRename?: () => void;
 }
 
 export function ListDetailsHeader({
@@ -23,16 +31,28 @@ export function ListDetailsHeader({
 	onShare,
 	onArchive,
 	onCreateSet,
+	onRename,
 }: ListDetailsHeaderProps) {
 	return (
 		<div className="flex items-center justify-between p-4 border-b bg-background sticky top-0 z-10">
-			<div className="flex items-center gap-3">
-				<Link to="/lists" className="p-2 -ml-2 hover:bg-accent rounded-full">
+			<div className="flex items-center gap-3 min-w-0 flex-1">
+				<Link
+					to="/lists"
+					className="p-2 -ml-2 hover:bg-accent rounded-full shrink-0"
+					aria-label="Wróć do list"
+				>
 					<ArrowLeft className="h-5 w-5" />
 				</Link>
-				<div>
-					<h1 className="font-semibold text-lg leading-tight">{list.name}</h1>
-					{/* Status indicator could go here */}
+				<div className="min-w-0 flex-1">
+					<h1 className="font-semibold text-lg leading-tight truncate">
+						{list.name}
+					</h1>
+					{/* SyncStatusIndicator – placeholder (część 9) */}
+					<div
+						className="h-1 w-4 mt-0.5"
+						aria-hidden
+						title="Status synchronizacji – wkrótce"
+					/>
 				</div>
 			</div>
 
@@ -53,6 +73,12 @@ export function ListDetailsHeader({
 						<Copy className="mr-2 h-4 w-4" />
 						Utwórz zestaw
 					</DropdownMenuItem>
+					{onRename && (
+						<DropdownMenuItem onClick={onRename}>
+							<Pencil className="mr-2 h-4 w-4" />
+							Zmień nazwę
+						</DropdownMenuItem>
+					)}
 					<DropdownMenuSeparator />
 					<DropdownMenuItem
 						onClick={onArchive}

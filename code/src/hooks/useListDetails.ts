@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import type { Database } from "@/db/database.types";
+import { listQueryKeys } from "@/hooks/useListsView";
 import { listItemsService } from "@/services/items.service";
 import { listsService } from "@/services/lists.service";
 import type {
@@ -16,6 +17,7 @@ export function useListDetails(listId: string) {
 	const [conflictState, setConflictState] = useState<SingleItemConflictState>({
 		isOpen: false,
 	});
+	const [pendingIds, setPendingIds] = useState<Set<string>>(new Set());
 
 	// Helper to check if error is a network error
 	const isNetworkError = (error: unknown) => {
@@ -62,6 +64,7 @@ export function useListDetails(listId: string) {
 		networkMode: "offlineFirst",
 		onMutate: async (variables) => {
 			const newItem = variables.data;
+			const optimisticId = crypto.randomUUID();
 			await queryClient.cancelQueries({ queryKey: ["list-items", listId] });
 			const previousItems = queryClient.getQueryData<ListItem[]>([
 				"list-items",
@@ -70,7 +73,7 @@ export function useListDetails(listId: string) {
 
 			queryClient.setQueryData<ListItem[]>(["list-items", listId], (old) => {
 				const optimisticItem: ListItem = {
-					id: crypto.randomUUID(),
+					id: optimisticId,
 					list_id: listId,
 					name: newItem.name,
 					quantity: newItem.quantity ?? null,
@@ -83,12 +86,22 @@ export function useListDetails(listId: string) {
 				return old ? [...old, optimisticItem] : [optimisticItem];
 			});
 
-			return { previousItems };
+			setPendingIds((prev) => new Set(prev).add(optimisticId));
+			return { previousItems, optimisticId };
 		},
 		onError: (err, _variables, context) => {
 			// Only rollback if it's NOT a network error
 			if (context?.previousItems && !isNetworkError(err)) {
 				queryClient.setQueryData(["list-items", listId], context.previousItems);
+			}
+		},
+		onSettled: (_data, _error, _variables, context) => {
+			if (context?.optimisticId) {
+				setPendingIds((prev) => {
+					const next = new Set(prev);
+					next.delete(context.optimisticId);
+					return next;
+				});
 			}
 		},
 	});
@@ -114,11 +127,21 @@ export function useListDetails(listId: string) {
 				);
 			});
 
-			return { previousItems };
+			setPendingIds((prev) => new Set(prev).add(updatedItem.id));
+			return { previousItems, itemId: updatedItem.id };
 		},
 		onError: (err, _variables, context) => {
 			if (context?.previousItems && !isNetworkError(err)) {
 				queryClient.setQueryData(["list-items", listId], context.previousItems);
+			}
+		},
+		onSettled: (_data, _error, _variables, context) => {
+			if (context?.itemId) {
+				setPendingIds((prev) => {
+					const next = new Set(prev);
+					next.delete(context.itemId);
+					return next;
+				});
 			}
 		},
 	});
@@ -142,11 +165,21 @@ export function useListDetails(listId: string) {
 				return old?.filter((item) => item.id !== itemId);
 			});
 
-			return { previousItems };
+			setPendingIds((prev) => new Set(prev).add(itemId));
+			return { previousItems, itemId };
 		},
 		onError: (err, _variables, context) => {
 			if (context?.previousItems && !isNetworkError(err)) {
 				queryClient.setQueryData(["list-items", listId], context.previousItems);
+			}
+		},
+		onSettled: (_data, _error, _variables, context) => {
+			if (context?.itemId) {
+				setPendingIds((prev) => {
+					const next = new Set(prev);
+					next.delete(context.itemId);
+					return next;
+				});
 			}
 		},
 	});
@@ -210,10 +243,18 @@ export function useListDetails(listId: string) {
 		});
 	};
 
+	const archiveList = async () => {
+		await listsService.completeShoppingTrip(listId);
+		queryClient.invalidateQueries({ queryKey: ["list", listId] });
+		queryClient.invalidateQueries({ queryKey: ["list-items", listId] });
+		queryClient.invalidateQueries({ queryKey: listQueryKeys.all });
+	};
+
 	return {
 		list,
 		activeItems,
 		completedItems,
+		pendingIds,
 		isLoading: isListLoading || isItemsLoading,
 		error: listError,
 		addItem: handleAddItem,
@@ -223,5 +264,6 @@ export function useListDetails(listId: string) {
 		resolveConflict,
 		cancelConflict: () => setConflictState({ isOpen: false }),
 		isSubmitting: createItemMutation.isPending || updateItemMutation.isPending,
+		archiveList,
 	};
 }

@@ -1,11 +1,19 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { ActiveItemsList } from "@/components/list-details/ActiveItemsList";
 import { CompletedItemsSection } from "@/components/list-details/CompletedItemsSection";
 import { ItemConflictDialog } from "@/components/list-details/ItemConflictDialog";
 import { ListDetailsHeader } from "@/components/list-details/ListDetailsHeader";
 import { StickyInputBar } from "@/components/list-details/StickyInputBar";
 import { Button } from "@/components/ui/button";
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+} from "@/components/ui/dialog";
 import { supabaseClient } from "@/db/supabase.client";
 import { useListDetails } from "@/hooks/useListDetails";
 
@@ -16,6 +24,9 @@ export const Route = createFileRoute("/lists/$listId")({
 function ListDetailsPage() {
 	const { listId } = Route.useParams();
 	const navigate = useNavigate();
+	const [archiveConfirmOpen, setArchiveConfirmOpen] = useState(false);
+	const [sharePlaceholderOpen, setSharePlaceholderOpen] = useState(false);
+	const [isArchiving, setIsArchiving] = useState(false);
 
 	// Auth check
 	useEffect(() => {
@@ -34,6 +45,7 @@ function ListDetailsPage() {
 		list,
 		activeItems,
 		completedItems,
+		pendingIds,
 		isLoading,
 		error,
 		addItem,
@@ -43,7 +55,22 @@ function ListDetailsPage() {
 		resolveConflict,
 		cancelConflict,
 		isSubmitting,
+		archiveList,
 	} = useListDetails(listId);
+
+	const handleArchiveConfirm = async () => {
+		if (!archiveList) return;
+		setIsArchiving(true);
+		try {
+			await archiveList();
+			setArchiveConfirmOpen(false);
+			navigate({ to: "/lists" });
+		} catch (err) {
+			console.error("Archive failed:", err);
+		} finally {
+			setIsArchiving(false);
+		}
+	};
 
 	if (isLoading) {
 		return (
@@ -70,9 +97,10 @@ function ListDetailsPage() {
 		<div className="flex flex-col min-h-screen pb-20 relative bg-background">
 			<ListDetailsHeader
 				list={list}
-				onShare={() => console.log("Share not implemented")}
-				onArchive={() => console.log("Archive not implemented")}
-				onCreateSet={() => console.log("Create Set not implemented")}
+				onShare={() => setSharePlaceholderOpen(true)}
+				onArchive={() => setArchiveConfirmOpen(true)}
+				onCreateSet={() => {}}
+				onRename={() => {}}
 			/>
 
 			<div className="flex-1 overflow-y-auto">
@@ -80,12 +108,14 @@ function ListDetailsPage() {
 					items={activeItems}
 					onToggle={toggleItem}
 					onDelete={deleteItem}
+					pendingIds={pendingIds}
 				/>
 
 				<CompletedItemsSection
 					items={completedItems}
 					onToggle={toggleItem}
 					onDelete={deleteItem}
+					pendingIds={pendingIds}
 				/>
 			</div>
 
@@ -98,6 +128,49 @@ function ListDetailsPage() {
 				onConfirm={resolveConflict}
 				onCancel={cancelConflict}
 			/>
+
+			{/* Archiwizacja: potwierdzenie */}
+			<Dialog open={archiveConfirmOpen} onOpenChange={setArchiveConfirmOpen}>
+				<DialogContent className="sm:max-w-[425px]">
+					<DialogHeader>
+						<DialogTitle>Zakończ zakupy</DialogTitle>
+						<DialogDescription>
+							Czy na pewno chcesz zakończyć zakupy i zarchiwizować listę?
+							Będziesz mógł ją zobaczyć w Historii.
+						</DialogDescription>
+					</DialogHeader>
+					<DialogFooter>
+						<Button
+							variant="outline"
+							onClick={() => setArchiveConfirmOpen(false)}
+							disabled={isArchiving}
+						>
+							Anuluj
+						</Button>
+						<Button onClick={handleArchiveConfirm} disabled={isArchiving}>
+							{isArchiving ? "Zapisywanie..." : "Zakończ zakupy"}
+						</Button>
+					</DialogFooter>
+				</DialogContent>
+			</Dialog>
+
+			{/* Udostępnij: placeholder (ShareModal – część 8) */}
+			<Dialog
+				open={sharePlaceholderOpen}
+				onOpenChange={setSharePlaceholderOpen}
+			>
+				<DialogContent className="sm:max-w-[425px]">
+					<DialogHeader>
+						<DialogTitle>Udostępnij listę</DialogTitle>
+						<DialogDescription>
+							Udostępnianie listy – wkrótce (część 8).
+						</DialogDescription>
+					</DialogHeader>
+					<DialogFooter>
+						<Button onClick={() => setSharePlaceholderOpen(false)}>OK</Button>
+					</DialogFooter>
+				</DialogContent>
+			</Dialog>
 		</div>
 	);
 }

@@ -5,12 +5,14 @@ interface ActiveItemsListProps {
 	items: ListItem[];
 	onToggle: (id: string, isCompleted: boolean) => void;
 	onDelete: (id: string) => void;
+	pendingIds?: Set<string>;
 }
 
 export function ActiveItemsList({
 	items,
 	onToggle,
 	onDelete,
+	pendingIds = new Set(),
 }: ActiveItemsListProps) {
 	if (items.length === 0) {
 		return (
@@ -28,6 +30,7 @@ export function ActiveItemsList({
 					item={item}
 					onToggle={onToggle}
 					onDelete={onDelete}
+					isPending={pendingIds.has(item.id)}
 				/>
 			))}
 		</div>
