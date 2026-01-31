@@ -12,6 +12,15 @@ export type SetItem = Database["public"]["Tables"]["set_items"]["Row"];
 export type HistoryEntry =
 	Database["public"]["Tables"]["shopping_history"]["Row"];
 
+/**
+ * Element zrzutu items_snapshot w shopping_history (archive_list_items).
+ */
+export interface HistoryItemSnapshot {
+	name: string;
+	quantity: string | null;
+	note: string | null;
+}
+
 // DTOs (Data Transfer Objects) for creating/updating
 export interface CreateListDTO {
 	name: string;
