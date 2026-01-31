@@ -55,4 +55,4 @@ W swoim podziale implementacji wykonaj kroki 1–12 jak w szablonie (podsumowani
 
 Po przeprowadzeniu analizy dostarcz plan wdrożenia w formacie Markdown z sekcjami: 1. Przegląd, 2. Routing, 3. Struktura komponentów, 4. Szczegóły komponentów, 5. Typy, 6. Zarządzanie stanem, 7. Integracja z interfejsami, 8. Interakcje użytkownika, 9. Warunki i walidacja, 10. Obsługa błędów, 11. Kroki implementacji.
 
-Ostateczne wyniki w języku polskim, zapisane w pliku **.ai/auth-view-implementation-plan.md**. Nie uwzględniaj analizy w końcowym wyniku.
+Ostateczne wyniki w języku polskim, zapisane w pliku **.ai/full-impl-plan-02-auth-view-implementation-plan.md**. Nie uwzględniaj analizy w końcowym wyniku.

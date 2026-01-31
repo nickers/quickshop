@@ -52,4 +52,4 @@ TanStack Query: useMutation (isPending, isError) – źródło stanu SyncStatusI
 
 Przed utworzeniem ostatecznego planu wdrożenia przeprowadź analizę i planowanie wewnątrz tagów <implementation_breakdown>. Wykonaj kroki 1–12 podziału implementacji.
 
-Po analizie dostarcz plan wdrożenia w formacie Markdown (sekcje 1–11). Ostateczne wyniki w języku polskim, zapisane w pliku **.ai/sync-ux-implementation-plan.md**. Nie uwzględniaj analizy w końcowym wyniku.
+Po analizie dostarcz plan wdrożenia w formacie Markdown (sekcje 1–11). Ostateczne wyniki w języku polskim, zapisane w pliku **.ai/full-impl-plan-09-sync-ux-implementation-plan.md**. Nie uwzględniaj analizy w końcowym wyniku.

@@ -82,4 +82,4 @@ Po przeprowadzeniu analizy dostarcz plan wdrożenia w formacie Markdown z nastę
 
 Upewnij się, że Twój plan jest zgodny z PRD, historyjkami użytkownika i uwzględnia dostarczony stack technologiczny.
 
-Ostateczne wyniki powinny być w języku polskim i zapisane w pliku o nazwie **.ai/layout-navigation-view-implementation-plan.md**. Nie uwzględniaj żadnej analizy i planowania w końcowym wyniku.
+Ostateczne wyniki powinny być w języku polskim i zapisane w pliku o nazwie **.ai/full-impl-plan-01-layout-navigation-view-implementation-plan.md**. Nie uwzględniaj żadnej analizy i planowania w końcowym wyniku.
