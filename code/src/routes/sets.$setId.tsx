@@ -1,8 +1,8 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useId, useState } from "react";
+import { StickyInputBar } from "@/components/list-details/StickyInputBar";
 import { SetDetailsHeader } from "@/components/set-details/SetDetailsHeader";
 import { SetItemsList } from "@/components/set-details/SetItemsList";
-import { StickyInputBar } from "@/components/list-details/StickyInputBar";
 import { Button } from "@/components/ui/button";
 import {
 	Dialog,
@@ -24,6 +24,7 @@ export const Route = createFileRoute("/sets/$setId")({
 function SetDetailsPage() {
 	const { setId } = Route.useParams();
 	const navigate = useNavigate();
+	const renameSetInputId = useId();
 	const [renameDialogOpen, setRenameDialogOpen] = useState(false);
 	const [renameValue, setRenameValue] = useState("");
 	const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
@@ -140,9 +141,9 @@ function SetDetailsPage() {
 					</DialogHeader>
 					<div className="grid gap-4 py-4">
 						<div className="grid gap-2">
-							<Label htmlFor="rename-set-input">Nazwa</Label>
+							<Label htmlFor={renameSetInputId}>Nazwa</Label>
 							<Input
-								id="rename-set-input"
+								id={renameSetInputId}
 								value={renameValue}
 								onChange={(e) => setRenameValue(e.target.value)}
 								placeholder="np. Śniadanie"

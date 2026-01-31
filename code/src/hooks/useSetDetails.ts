@@ -17,7 +17,11 @@ export function useSetDetails(setId: string) {
 	const queryClient = useQueryClient();
 	const [pendingIds, setPendingIds] = useState<Set<string>>(new Set());
 
-	const { data: set, isLoading: isSetLoading, error: setError } = useQuery({
+	const {
+		data: set,
+		isLoading: isSetLoading,
+		error: setError,
+	} = useQuery({
 		queryKey: ["set", setId],
 		queryFn: () => setsService.getSetById(setId),
 		enabled: !!setId,
@@ -46,9 +50,7 @@ export function useSetDetails(setId: string) {
 
 			const maxSort =
 				(previousItems?.length ?? 0) > 0
-					? Math.max(
-							...(previousItems ?? []).map((i) => i.sort_order ?? 0),
-						) + 1
+					? Math.max(...(previousItems ?? []).map((i) => i.sort_order ?? 0)) + 1
 					: 0;
 
 			queryClient.setQueryData<SetItem[]>(["set-items", setId], (old) => {
@@ -70,10 +72,7 @@ export function useSetDetails(setId: string) {
 		},
 		onError: (err, _variables, context) => {
 			if (context?.previousItems && !isNetworkError(err)) {
-				queryClient.setQueryData(
-					["set-items", setId],
-					context.previousItems,
-				);
+				queryClient.setQueryData(["set-items", setId], context.previousItems);
 			}
 		},
 		onSettled: (_data, _error, _variables, context) => {
@@ -106,9 +105,7 @@ export function useSetDetails(setId: string) {
 			]);
 
 			queryClient.setQueryData<SetItem[]>(["set-items", setId], (old) =>
-				old?.map((item) =>
-					item.id === itemId ? { ...item, ...data } : item,
-				),
+				old?.map((item) => (item.id === itemId ? { ...item, ...data } : item)),
 			);
 
 			setPendingIds((prev) => new Set(prev).add(itemId));
@@ -116,10 +113,7 @@ export function useSetDetails(setId: string) {
 		},
 		onError: (err, _variables, context) => {
 			if (context?.previousItems && !isNetworkError(err)) {
-				queryClient.setQueryData(
-					["set-items", setId],
-					context.previousItems,
-				);
+				queryClient.setQueryData(["set-items", setId], context.previousItems);
 			}
 		},
 		onSettled: (_data, _error, _variables, context) => {
@@ -154,10 +148,7 @@ export function useSetDetails(setId: string) {
 		},
 		onError: (err, _variables, context) => {
 			if (context?.previousItems && !isNetworkError(err)) {
-				queryClient.setQueryData(
-					["set-items", setId],
-					context.previousItems,
-				);
+				queryClient.setQueryData(["set-items", setId], context.previousItems);
 			}
 		},
 		onSettled: (_data, _error, _variables, context) => {
@@ -181,8 +172,7 @@ export function useSetDetails(setId: string) {
 		]);
 		const maxSort =
 			(currentItems?.length ?? 0) > 0
-				? Math.max(...(currentItems ?? []).map((i) => i.sort_order ?? 0)) +
-					1
+				? Math.max(...(currentItems ?? []).map((i) => i.sort_order ?? 0)) + 1
 				: 0;
 
 		addItemMutation.mutate({

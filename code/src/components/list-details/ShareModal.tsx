@@ -1,5 +1,5 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
 	Dialog,
@@ -27,12 +27,9 @@ interface ShareModalProps {
 	listId: string;
 }
 
-export function ShareModal({
-	isOpen,
-	onClose,
-	listId,
-}: ShareModalProps) {
+export function ShareModal({ isOpen, onClose, listId }: ShareModalProps) {
 	const queryClient = useQueryClient();
+	const shareEmailId = useId();
 	const [email, setEmail] = useState("");
 	const [error, setError] = useState<string | null>(null);
 	const [isInviting, setIsInviting] = useState(false);
@@ -70,13 +67,18 @@ export function ShareModal({
 		try {
 			await listsService.shareListWithEmail(listId, trimmed);
 			setEmail("");
-			queryClient.invalidateQueries({ queryKey: [LIST_MEMBERS_QUERY_KEY, listId] });
+			queryClient.invalidateQueries({
+				queryKey: [LIST_MEMBERS_QUERY_KEY, listId],
+			});
 		} catch (err) {
 			const message =
 				err instanceof Error ? err.message : "Nie udało się zaprosić.";
 			if (message.includes("not found")) {
 				setError(`Użytkownik z adresem ${trimmed} nie jest zarejestrowany.`);
-			} else if (message.includes("already a member") || message.includes("already")) {
+			} else if (
+				message.includes("already a member") ||
+				message.includes("already")
+			) {
 				setError("Ta osoba ma już dostęp do listy.");
 			} else {
 				setError(message);
@@ -89,7 +91,9 @@ export function ShareModal({
 	const handleRemoveMember = async (userId: string) => {
 		try {
 			await listsService.removeListMember(listId, userId);
-			queryClient.invalidateQueries({ queryKey: [LIST_MEMBERS_QUERY_KEY, listId] });
+			queryClient.invalidateQueries({
+				queryKey: [LIST_MEMBERS_QUERY_KEY, listId],
+			});
 		} catch (err) {
 			console.error("Remove member failed:", err);
 		}
@@ -115,9 +119,9 @@ export function ShareModal({
 				<div className="grid gap-4 py-4">
 					<div className="flex gap-2">
 						<div className="grid flex-1 gap-2">
-							<Label htmlFor="share-email">E-mail</Label>
+							<Label htmlFor={shareEmailId}>E-mail</Label>
 							<Input
-								id="share-email"
+								id={shareEmailId}
 								type="email"
 								placeholder="np. jan@example.com"
 								value={email}
@@ -151,9 +155,7 @@ export function ShareModal({
 					<div>
 						<Label className="text-muted-foreground">Osoby z dostępem</Label>
 						{isLoadingMembers ? (
-							<p className="text-sm text-muted-foreground py-2">
-								Ładowanie…
-							</p>
+							<p className="text-sm text-muted-foreground py-2">Ładowanie…</p>
 						) : members.length === 0 ? (
 							<p className="text-sm text-muted-foreground py-2">
 								Brak zaproszonych osób.

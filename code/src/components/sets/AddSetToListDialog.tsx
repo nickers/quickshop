@@ -1,5 +1,6 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
+import { SetConflictResolutionDialog } from "@/components/list-details/SetConflictResolutionDialog";
 import { Button } from "@/components/ui/button";
 import {
 	Dialog,
@@ -8,7 +9,6 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog";
-import { SetConflictResolutionDialog } from "@/components/list-details/SetConflictResolutionDialog";
 import { listQueryKeys } from "@/hooks/useListsView";
 import { listItemsService } from "@/services/items.service";
 import { listsService } from "@/services/lists.service";
@@ -46,8 +46,9 @@ export function AddSetToListDialog({
 	const [nonConflictingItems, setNonConflictingItems] = useState<
 		CreateListItemDTO[]
 	>([]);
-	const [targetListIdForConflict, setTargetListIdForConflict] =
-		useState<string | null>(null);
+	const [targetListIdForConflict, setTargetListIdForConflict] = useState<
+		string | null
+	>(null);
 
 	// Listy użytkownika (gdy dialog otwarty)
 	const { data: lists = [] } = useQuery({
@@ -85,9 +86,9 @@ export function AddSetToListDialog({
 				};
 				const existing = nameToExisting.get(setItem.name.toLowerCase());
 				if (existing) {
-					const suggestedQuantity = [existing.quantity, setItem.quantity]
-						.filter(Boolean)
-						.join("+") || "—";
+					const suggestedQuantity =
+						[existing.quantity, setItem.quantity].filter(Boolean).join("+") ||
+						"—";
 					conflictsOut.push({
 						existingItem: existing,
 						newItemCandidate: dto,

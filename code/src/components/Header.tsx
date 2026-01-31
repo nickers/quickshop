@@ -8,8 +8,8 @@ import {
 	DropdownMenuItem,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { cn } from "@/lib/utils";
 import { supabaseClient } from "@/db/supabase.client";
+import { cn } from "@/lib/utils";
 
 function getTitle(pathname: string): string {
 	if (pathname === "/sets" || pathname.startsWith("/sets/")) return "Zestawy";
@@ -23,8 +23,7 @@ export default function Header() {
 	const navigate = useNavigate();
 	const pathname = useRouterState({ select: (s) => s.location.pathname });
 	const title = getTitle(pathname);
-	const isSetsRoute =
-		pathname === "/sets" || pathname.startsWith("/sets/");
+	const isSetsRoute = pathname === "/sets" || pathname.startsWith("/sets/");
 
 	const handleLogout = async () => {
 		await supabaseClient.auth.signOut();

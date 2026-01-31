@@ -208,9 +208,10 @@ export class ListsService implements IListService {
 		if (!data) return [];
 
 		return data.map((row) => {
-			const profiles = row.profiles as
-				| { email: string | null; full_name: string | null }
-				| null;
+			const profiles = row.profiles as {
+				email: string | null;
+				full_name: string | null;
+			} | null;
 			return {
 				list_id: row.list_id,
 				user_id: row.user_id,

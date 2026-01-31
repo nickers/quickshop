@@ -37,9 +37,7 @@ export function SetConflictResolutionDialog({
 	// Domyślnie zaznacz wszystkie konflikty (Zaktualizuj ilość)
 	useEffect(() => {
 		if (isOpen && conflicts.length > 0) {
-			setSelectedConflicts(
-				new Set(conflicts.map((c) => c.existingItem.name)),
-			);
+			setSelectedConflicts(new Set(conflicts.map((c) => c.existingItem.name)));
 		}
 	}, [isOpen, conflicts]);
 
@@ -103,8 +101,9 @@ export function SetConflictResolutionDialog({
 									{conflict.existingItem.name}
 								</label>
 								<div className="text-sm text-muted-foreground mt-1">
-									Zaktualizuj ilość: Obecnie {conflict.existingItem.quantity || "—"}{" "}
-									+ Dodawane {conflict.newItemCandidate.quantity || "—"} →{" "}
+									Zaktualizuj ilość: Obecnie{" "}
+									{conflict.existingItem.quantity || "—"} + Dodawane{" "}
+									{conflict.newItemCandidate.quantity || "—"} →{" "}
 									<span className="text-primary font-semibold">
 										{conflict.suggestedQuantity}
 									</span>

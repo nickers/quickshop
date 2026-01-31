@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import { ActiveItemsList } from "@/components/list-details/ActiveItemsList";
 import { CompletedItemsSection } from "@/components/list-details/CompletedItemsSection";
 import { ItemConflictDialog } from "@/components/list-details/ItemConflictDialog";
@@ -27,11 +27,13 @@ export const Route = createFileRoute("/lists/$listId")({
 function ListDetailsPage() {
 	const { listId } = Route.useParams();
 	const navigate = useNavigate();
+	const renameListInputId = useId();
 	const [archiveConfirmOpen, setArchiveConfirmOpen] = useState(false);
 	const [shareModalOpen, setShareModalOpen] = useState(false);
 	const [renameDialogOpen, setRenameDialogOpen] = useState(false);
 	const [renameInputValue, setRenameInputValue] = useState("");
-	const [createSetPlaceholderOpen, setCreateSetPlaceholderOpen] = useState(false);
+	const [createSetPlaceholderOpen, setCreateSetPlaceholderOpen] =
+		useState(false);
 	const [isArchiving, setIsArchiving] = useState(false);
 	const [isRenaming, setIsRenaming] = useState(false);
 
@@ -194,15 +196,13 @@ function ListDetailsPage() {
 				<DialogContent className="sm:max-w-[425px]">
 					<DialogHeader>
 						<DialogTitle>Zmień nazwę listy</DialogTitle>
-						<DialogDescription>
-							Wprowadź nową nazwę listy.
-						</DialogDescription>
+						<DialogDescription>Wprowadź nową nazwę listy.</DialogDescription>
 					</DialogHeader>
 					<div className="grid gap-4 py-4">
 						<div className="grid gap-2">
-							<Label htmlFor="rename-list-input">Nazwa</Label>
+							<Label htmlFor={renameListInputId}>Nazwa</Label>
 							<Input
-								id="rename-list-input"
+								id={renameListInputId}
 								value={renameInputValue}
 								onChange={(e) => setRenameInputValue(e.target.value)}
 								placeholder="np. Zakupy tygodniowe"

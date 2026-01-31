@@ -1,5 +1,6 @@
 import { MoreVertical, Pencil, Trash2 } from "lucide-react";
-import { useState } from "react";
+import { useId, useState } from "react";
+import { Button } from "@/components/ui/button";
 import {
 	Dialog,
 	DialogContent,
@@ -14,7 +15,6 @@ import {
 	DropdownMenuItem,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
@@ -36,6 +36,9 @@ export function SetItemRow({
 	onDelete,
 	isPending = false,
 }: SetItemRowProps) {
+	const editNameId = useId();
+	const editQuantityId = useId();
+	const editNoteId = useId();
 	const [editOpen, setEditOpen] = useState(false);
 	const [editName, setEditName] = useState(item.name);
 	const [editQuantity, setEditQuantity] = useState(item.quantity ?? "");
@@ -112,9 +115,9 @@ export function SetItemRow({
 					</DialogHeader>
 					<div className="grid gap-4 py-4">
 						<div className="grid gap-2">
-							<Label htmlFor="edit-name">Nazwa</Label>
+							<Label htmlFor={editNameId}>Nazwa</Label>
 							<Input
-								id="edit-name"
+								id={editNameId}
 								value={editName}
 								onChange={(e) => setEditName(e.target.value)}
 								placeholder="np. Mleko"
@@ -122,9 +125,9 @@ export function SetItemRow({
 							/>
 						</div>
 						<div className="grid gap-2">
-							<Label htmlFor="edit-quantity">Ilość (opcjonalnie)</Label>
+							<Label htmlFor={editQuantityId}>Ilość (opcjonalnie)</Label>
 							<Input
-								id="edit-quantity"
+								id={editQuantityId}
 								value={editQuantity}
 								onChange={(e) => setEditQuantity(e.target.value)}
 								placeholder="np. 2 szt"
@@ -132,9 +135,9 @@ export function SetItemRow({
 							/>
 						</div>
 						<div className="grid gap-2">
-							<Label htmlFor="edit-note">Notatka (opcjonalnie)</Label>
+							<Label htmlFor={editNoteId}>Notatka (opcjonalnie)</Label>
 							<Input
-								id="edit-note"
+								id={editNoteId}
 								value={editNote}
 								onChange={(e) => setEditNote(e.target.value)}
 								placeholder="np. bez laktozy"

@@ -1,14 +1,14 @@
 import {
+	closestCenter,
 	DndContext,
 	type DragEndEvent,
 	PointerSensor,
 	useSensor,
 	useSensors,
-	closestCenter,
 } from "@dnd-kit/core";
 import {
-	SortableContext,
 	arrayMove,
+	SortableContext,
 	useSortable,
 	verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
@@ -107,10 +107,7 @@ export function ActiveItemsList({
 			collisionDetection={closestCenter}
 			onDragEnd={handleDragEnd}
 		>
-			<SortableContext
-				items={itemIds}
-				strategy={verticalListSortingStrategy}
-			>
+			<SortableContext items={itemIds} strategy={verticalListSortingStrategy}>
 				<div className="p-4 pb-0">
 					{items.map((item) => (
 						<SortableRow

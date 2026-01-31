@@ -2,9 +2,7 @@ import { ChevronDown, ChevronUp } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { HistoryEntry, HistoryItemSnapshot } from "@/types/domain.types";
 
-function isHistoryItemSnapshot(
-	item: unknown,
-): item is HistoryItemSnapshot {
+function isHistoryItemSnapshot(item: unknown): item is HistoryItemSnapshot {
 	return (
 		item != null &&
 		typeof item === "object" &&

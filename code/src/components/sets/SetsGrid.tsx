@@ -1,7 +1,7 @@
 import { Layers } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { SetCard } from "./SetCard";
 import type { ShoppingSet } from "@/types/domain.types";
+import { SetCard } from "./SetCard";
 
 interface SetWithCount extends ShoppingSet {
 	itemCount?: number;

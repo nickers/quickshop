@@ -39,7 +39,9 @@ export function SetCard({
 
 	return (
 		<Card
-			className={onSetClick ? "cursor-pointer transition-shadow hover:shadow-md" : ""}
+			className={
+				onSetClick ? "cursor-pointer transition-shadow hover:shadow-md" : ""
+			}
 			onClick={onSetClick ? handleCardClick : undefined}
 		>
 			<CardHeader>

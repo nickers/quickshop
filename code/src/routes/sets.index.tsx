@@ -31,14 +31,8 @@ function SetsIndexPage() {
 		checkAuth();
 	}, [navigate]);
 
-	const {
-		sets,
-		isLoading,
-		error,
-		refetch,
-		createSet,
-		isCreatingSet,
-	} = useSetsView();
+	const { sets, isLoading, error, refetch, createSet, isCreatingSet } =
+		useSetsView();
 
 	const handleAddToList = (setId: string) => {
 		const set = sets.find((s) => s.id === setId);
