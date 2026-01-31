@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as ListsRouteImport } from './routes/lists'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ListsIndexRouteImport } from './routes/lists.index'
 import { Route as ListsListIdRouteImport } from './routes/lists.$listId'
 import { Route as DemoTanstackQueryRouteImport } from './routes/demo/tanstack-query'
 
@@ -30,6 +31,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ListsIndexRoute = ListsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => ListsRoute,
+} as any)
 const ListsListIdRoute = ListsListIdRouteImport.update({
   id: '/$listId',
   path: '/$listId',
@@ -47,13 +53,14 @@ export interface FileRoutesByFullPath {
   '/lists': typeof ListsRouteWithChildren
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
   '/lists/$listId': typeof ListsListIdRoute
+  '/lists/': typeof ListsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
-  '/lists': typeof ListsRouteWithChildren
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
   '/lists/$listId': typeof ListsListIdRoute
+  '/lists': typeof ListsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -62,6 +69,7 @@ export interface FileRoutesById {
   '/lists': typeof ListsRouteWithChildren
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
   '/lists/$listId': typeof ListsListIdRoute
+  '/lists/': typeof ListsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -71,8 +79,9 @@ export interface FileRouteTypes {
     | '/lists'
     | '/demo/tanstack-query'
     | '/lists/$listId'
+    | '/lists/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/lists' | '/demo/tanstack-query' | '/lists/$listId'
+  to: '/' | '/auth' | '/demo/tanstack-query' | '/lists/$listId' | '/lists'
   id:
     | '__root__'
     | '/'
@@ -80,6 +89,7 @@ export interface FileRouteTypes {
     | '/lists'
     | '/demo/tanstack-query'
     | '/lists/$listId'
+    | '/lists/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -112,6 +122,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/lists/': {
+      id: '/lists/'
+      path: '/'
+      fullPath: '/lists/'
+      preLoaderRoute: typeof ListsIndexRouteImport
+      parentRoute: typeof ListsRoute
+    }
     '/lists/$listId': {
       id: '/lists/$listId'
       path: '/$listId'
@@ -131,10 +148,12 @@ declare module '@tanstack/react-router' {
 
 interface ListsRouteChildren {
   ListsListIdRoute: typeof ListsListIdRoute
+  ListsIndexRoute: typeof ListsIndexRoute
 }
 
 const ListsRouteChildren: ListsRouteChildren = {
   ListsListIdRoute: ListsListIdRoute,
+  ListsIndexRoute: ListsIndexRoute,
 }
 
 const ListsRouteWithChildren = ListsRoute._addFileChildren(ListsRouteChildren)
