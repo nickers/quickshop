@@ -1,11 +1,14 @@
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { defineConfig, devices } from "@playwright/test";
 import dotenv from "dotenv";
 
+// Load from config directory so .env.e2e is found even if cwd differs (e.g. in CI).
+const configDir = path.dirname(fileURLToPath(import.meta.url));
 // .env.e2e.local first (passwords, local overrides). Then .env.e2e with override: false
 // so committed file supplies emails/Vite vars but does not overwrite secrets (CI) or .local (local).
-dotenv.config({ path: path.resolve(process.cwd(), ".env.e2e.local"), override: false });
-dotenv.config({ path: path.resolve(process.cwd(), ".env.e2e"), override: false });
+dotenv.config({ path: path.join(configDir, ".env.e2e.local"), override: false });
+dotenv.config({ path: path.join(configDir, ".env.e2e"), override: false });
 
 export default defineConfig({
 	testDir: "./e2e",

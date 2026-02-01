@@ -53,6 +53,9 @@ jobs:
       BASE_URL: ${{ vars.BASE_URL }}
       VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
       VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.VITE_SUPABASE_PUBLISHABLE_KEY }}
+      # Environment secrets are not auto-injected; reference them so they reach the test process.
+      E2E_USER1_PASSWORD: ${{ secrets.E2E_USER1_PASSWORD }}
+      E2E_USER2_PASSWORD: ${{ secrets.E2E_USER2_PASSWORD }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
