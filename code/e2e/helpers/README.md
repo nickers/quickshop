@@ -192,6 +192,11 @@ This is ideal for debugging because:
 - Console logs are visible
 - You can inspect browser state
 
+### E2E database cleanup
+
+After all tests finish, Playwright runs `globalTeardown` (`e2e/globalTeardown.ts`), which logs in as E2E_USER1 and removes test lists (names starting with "E2E Test " or "E2E RWD ") from the database. Requires migration `20260201120000_e2e_cleanup_function.sql` and `.env.e2e` / `.env.e2e.local` with Supabase URL, anon key, and E2E_USER1 credentials. See `.ai/e2e-database-cleanup.md` for details.
+
 **See also:**
 - `HOW_TO_VIEW_DEBUG_LOGS.md` - Complete debugging guide
 - `DEBUG_LOGS_GUIDE.md` - Log structure and patterns
+- `.ai/e2e-database-cleanup.md` - E2E DB cleanup (teardown)

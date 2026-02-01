@@ -275,6 +275,7 @@ export type Database = {
 		};
 		Functions: {
 			archive_list_items: { Args: { p_list_id: string }; Returns: undefined };
+			e2e_cleanup_test_lists: { Args: Record<string, never>; Returns: number };
 			invite_member_to_list: {
 				Args: { p_list_id: string; p_user_id: string };
 				Returns: undefined;

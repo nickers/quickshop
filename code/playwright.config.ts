@@ -19,6 +19,7 @@ export default defineConfig({
 	reporter: "html",
 	timeout: 30_000,
 	expect: { timeout: 10_000 },
+	globalTeardown: path.join(configDir, "e2e", "globalTeardown.ts"),
 	use: {
 		// Treat empty BASE_URL as unset so CI uses localhost when Playwright starts webServer
 		baseURL: process.env.BASE_URL || "http://localhost:3000",
