@@ -15,7 +15,9 @@ export class ListDetailsPage {
 
 	async addItem(name: string) {
 		await this.page.getByTestId("add-item-input").fill(name);
-		await this.page.getByTestId("sticky-input-bar").getByRole("button", { name: "Dodaj produkt" }).click();
+		const addButton = this.page.getByTestId("sticky-input-bar").getByRole("button", { name: "Dodaj produkt" });
+		await addButton.waitFor({ state: "visible" });
+		await addButton.click();
 	}
 
 	async expectItemVisible(itemName: string) {
@@ -30,24 +32,30 @@ export class ListDetailsPage {
 	/** Check checkbox for item (by name) to mark as bought */
 	async toggleItemBought(itemName: string) {
 		const row = this.page.getByRole("group", { name: itemName });
-		await row.getByRole("checkbox").click();
+		await row.waitFor({ state: "visible" });
+		const checkbox = row.getByRole("checkbox");
+		await checkbox.waitFor({ state: "visible" });
+		await checkbox.click();
 	}
 
 	/** Open row menu and click "Usuń" */
 	async deleteItem(itemName: string) {
-		await this.itemRow(itemName).getByTestId("list-item-row-menu").click();
-		await this.page.getByRole("menuitem", { name: "Usuń" }).waitFor({ state: "visible" });
-		await this.page.keyboard.press("ArrowDown");
-		await this.page.keyboard.press("ArrowDown");
-		await this.page.keyboard.press("Enter");
+		const menuButton = this.itemRow(itemName).getByTestId("list-item-row-menu");
+		await menuButton.waitFor({ state: "visible" });
+		await menuButton.click();
+		const deleteMenuItem = this.page.getByRole("menuitem", { name: "Usuń" });
+		await deleteMenuItem.waitFor({ state: "visible" });
+		await deleteMenuItem.click();
 	}
 
-	/** Open edit dialog for item: row menu -> Edycja (keyboard: first item then Enter) */
+	/** Open edit dialog for item: row menu -> Edycja */
 	async openEditItem(itemName: string) {
-		await this.itemRow(itemName).getByTestId("list-item-row-menu").click();
-		await this.page.getByRole("menuitem", { name: "Edycja" }).waitFor({ state: "visible" });
-		await this.page.keyboard.press("ArrowDown");
-		await this.page.keyboard.press("Enter");
+		const menuButton = this.itemRow(itemName).getByTestId("list-item-row-menu");
+		await menuButton.waitFor({ state: "visible" });
+		await menuButton.click();
+		const editMenuItem = this.page.getByRole("menuitem", { name: "Edycja" });
+		await editMenuItem.waitFor({ state: "visible" });
+		await editMenuItem.click();
 		await this.page.getByRole("dialog", { name: "Edytuj produkt" }).waitFor({ state: "visible" });
 	}
 
@@ -56,7 +64,9 @@ export class ListDetailsPage {
 		await this.openEditItem(itemName);
 		const dialog = this.page.getByRole("dialog", { name: "Edytuj produkt" });
 		await dialog.getByTestId("list-item-edit-name").fill(newName);
-		await dialog.getByTestId("list-item-edit-submit").click();
+		const submitButton = dialog.getByTestId("list-item-edit-submit");
+		await submitButton.waitFor({ state: "visible" });
+		await submitButton.click();
 		await dialog.waitFor({ state: "hidden" });
 	}
 
@@ -74,6 +84,8 @@ export class ListDetailsPage {
 	}
 
 	async cancelConflict() {
-		await this.page.getByTestId("item-conflict-dialog").getByRole("button", { name: "Anuluj" }).click();
+		const cancelButton = this.page.getByTestId("item-conflict-dialog").getByRole("button", { name: "Anuluj" });
+		await cancelButton.waitFor({ state: "visible" });
+		await cancelButton.click();
 	}
 }
