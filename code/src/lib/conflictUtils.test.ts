@@ -44,6 +44,18 @@ describe("suggestedQuantityForConflict", () => {
 		expect(suggestedQuantityForConflict("", "")).toBe("—");
 	});
 
+	it("returns '—' when both are '—' (placeholder treated as empty)", () => {
+		expect(suggestedQuantityForConflict("—", "—")).toBe("—");
+	});
+
+	it("returns new when existing is '—'", () => {
+		expect(suggestedQuantityForConflict("—", "2")).toBe("2");
+	});
+
+	it("returns existing when new is '—'", () => {
+		expect(suggestedQuantityForConflict("1", "—")).toBe("1");
+	});
+
 	it("returns existing when new is null", () => {
 		expect(suggestedQuantityForConflict("1", null)).toBe("1");
 	});
@@ -74,6 +86,14 @@ describe("suggestedQuantityForConflict", () => {
 
 	it("handles two non-numeric quantities", () => {
 		expect(suggestedQuantityForConflict("500 g", "1 l")).toBe("500 g+1 l");
+	});
+
+	it("treats '—' as empty: '—' + null returns '—'", () => {
+		expect(suggestedQuantityForConflict("—", null)).toBe("—");
+	});
+
+	it("treats '—' as empty: null + '—' returns '—'", () => {
+		expect(suggestedQuantityForConflict(null, "—")).toBe("—");
 	});
 });
 

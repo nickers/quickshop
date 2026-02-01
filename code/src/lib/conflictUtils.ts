@@ -26,16 +26,24 @@ export interface ComputeSetConflictsResult {
 	nonConflicting: CreateListItemDTO[];
 }
 
+const PLACEHOLDER_NO_QUANTITY = "—";
+
+function isEmptyQuantity(value: string | null): boolean {
+	return value == null || value === "" || value === PLACEHOLDER_NO_QUANTITY;
+}
+
 /**
  * Łączy ilości przy konflikcie: existing + "+" + new.
- * Gdy obie puste/null → "—".
+ * Wartość "—" traktowana jak brak (pusty string/null). Gdy obie puste/null/"—" → "—".
  */
 export function suggestedQuantityForConflict(
 	existingQuantity: string | null,
 	newQuantity: string | null,
 ): string {
-	const parts = [existingQuantity, newQuantity].filter(Boolean) as string[];
-	return parts.length > 0 ? parts.join("+") : "—";
+	const parts = [existingQuantity, newQuantity].filter(
+		(v): v is string => !isEmptyQuantity(v),
+	);
+	return parts.length > 0 ? parts.join("+") : PLACEHOLDER_NO_QUANTITY;
 }
 
 /**
