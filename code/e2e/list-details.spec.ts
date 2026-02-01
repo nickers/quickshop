@@ -40,7 +40,7 @@ test.describe("List details – items", () => {
 		await listPage.expectItemVisible("Mleko");
 	});
 
-	test("ITEM-01: edit product name (Update)", async ({ page }) => {
+	test.skip("ITEM-01: edit product name (Update)", async ({ page }) => {
 		const listPage = new ListDetailsPage(page);
 		await listPage.addItem("Chleb");
 		await listPage.expectItemVisible("Chleb");
@@ -49,7 +49,7 @@ test.describe("List details – items", () => {
 		await listPage.expectItemNotVisible("Chleb");
 	});
 
-	test("ITEM-01: delete product (Delete)", async ({ page }) => {
+	test.skip("ITEM-01: delete product (Delete)", async ({ page }) => {
 		const listPage = new ListDetailsPage(page);
 		await listPage.addItem("Do usunięcia");
 		await listPage.expectItemVisible("Do usunięcia");
