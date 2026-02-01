@@ -15,6 +15,7 @@ export default defineConfig({
     chunkSizeWarningLimit: 600,
   },
   test: {
+    exclude: ['**/node_modules/**', '**/dist/**', 'e2e/**'],
     passWithNoTests: true,
     coverage: {
       provider: 'v8',
