@@ -27,3 +27,21 @@ Vite embeds these at build time.
    | Variable| `CLOUDFLARE_PAGES_PROJECT_NAME` | Nazwa projektu Pages (np. `quickshop`)        |
 
 Token: Cloudflare Dashboard → My Profile → API Tokens → Create Token → template „Edit Cloudflare Workers” lub custom z „Cloudflare Pages Edit”.
+
+## E2E tests (TestsE2E)
+
+The **e2e** job uses the GitHub environment **TestsE2E**. E2E tests run against a local dev server started by Playwright in CI.
+
+4. In the repo: **Settings** → **Environments** → **TestsE2E** (create if needed).
+5. Add variables and secrets so auth setup and tests can run:
+
+   | Type    | Name                            | Description |
+   |---------|---------------------------------|-------------|
+   | Variable| `VITE_SUPABASE_URL`             | Supabase project URL (same as Production) |
+   | Variable| `VITE_SUPABASE_PUBLISHABLE_KEY` | Supabase anon/public key |
+   | Variable| `E2E_USER1_EMAIL`               | Email of the first E2E test user (e.g. test1@example.com) |
+   | Variable| `E2E_USER2_EMAIL`               | Email of the second E2E test user |
+   | Secret  | `E2E_USER1_PASSWORD`            | Password for E2E_USER1 |
+   | Secret  | `E2E_USER2_PASSWORD`            | Password for E2E_USER2 |
+
+   **Optional:** `BASE_URL` — if unset or empty, Playwright uses `http://localhost:3000` and starts the dev server automatically.

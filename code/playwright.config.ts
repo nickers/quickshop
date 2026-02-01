@@ -15,7 +15,8 @@ export default defineConfig({
 	timeout: 30_000,
 	expect: { timeout: 10_000 },
 	use: {
-		baseURL: process.env.BASE_URL ?? "http://localhost:3000",
+		// Treat empty BASE_URL as unset so CI uses localhost when Playwright starts webServer
+		baseURL: process.env.BASE_URL || "http://localhost:3000",
 		trace: "on-first-retry",
 	},
 	projects: [
