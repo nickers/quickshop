@@ -52,6 +52,9 @@ jobs:
       VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
       VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.VITE_SUPABASE_PUBLISHABLE_KEY }}
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - name: Setup Node and npm
         uses: ./.github/actions/setup-node-npm
         with:
