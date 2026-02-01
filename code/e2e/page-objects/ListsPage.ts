@@ -21,45 +21,19 @@ export class ListsPage {
 	async createList(name: string) {
 		await this.expectCreateListDialogVisible();
 		await this.page.getByTestId("create-list-name-input").fill(name);
-		
-		// Setup response waiters BEFORE clicking submit
-		const responsePromises = [
-			this.page.waitForResponse(
-				(response) =>
-					response.url().includes("/rest/v1/lists") &&
-					response.request().method() === "POST" &&
-					response.status() < 400,
-				{ timeout: 10000 }
-			).then(() => console.log("✅ Lista utworzona - INSERT do lists"))
-			 .catch(() => console.log("⚠️ Nie wykryto POST /rest/v1/lists")),
-			
-			this.page.waitForResponse(
-				(response) =>
-					response.url().includes("/rest/v1/rpc/invite_member_to_list") &&
-					response.status() < 400,
-				{ timeout: 10000 }
-			).then(() => console.log("✅ Członek dodany - RPC invite_member_to_list"))
-			 .catch(() => console.log("⚠️ Nie wykryto RPC invite_member_to_list")),
-			
-			// Wait for React Query refetch (GET request to lists)
-			this.page.waitForResponse(
-				(response) =>
-					response.url().includes("/rest/v1/lists") &&
-					response.request().method() === "GET" &&
-					response.status() < 400,
-				{ timeout: 10000 }
-			).then(() => console.log("✅ Lista odświeżona - GET refetch"))
-			 .catch(() => console.log("⚠️ Nie wykryto GET refetch")),
-		];
-		
-		// Click submit - this triggers the requests
+
+		// Click submit
 		await clickWhenReady(this.page.getByTestId("create-list-submit"));
 		
-		// Wait for dialog to close
+		// Wait for dialog to close (user sees dialog disappear)
 		await this.page.getByTestId("create-list-dialog").waitFor({ state: "hidden" });
 		
-		// Wait for all API responses (including refetch)
-		await Promise.all(responsePromises);
+		// Wait for new list to appear in the grid (user sees the new list)
+		await this.page
+			.getByTestId("lists-grid")
+			.getByText(name)
+			.first()
+			.waitFor({ state: "visible", timeout: 15000 });
 	}
 
 	async expectListVisible(listName: string) {

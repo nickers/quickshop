@@ -89,12 +89,15 @@ export function useListsView() {
 			console.log("[useListsView] 🚀 createList mutationFn called", "| Name:", data.name, "| Timestamp:", new Date().toISOString());
 			return listsService.createList(data);
 		},
-		onSuccess: (data) => {
+		onSuccess: async (data) => {
 			console.log("[useListsView] ✅ createList onSuccess", "| ListId:", data.id, "| Name:", data.name, "| Timestamp:", new Date().toISOString());
-			// Invalidate queries to refresh the list
-			queryClient.invalidateQueries({ queryKey: listQueryKeys.all });
-			// Close dialog
+			// Close dialog first (better UX - user sees immediate feedback)
 			setIsCreateDialogOpen(false);
+			// Force refetch to ensure new list is visible
+			// Using refetchQueries instead of invalidateQueries to guarantee immediate refetch
+			console.log("[useListsView] 🔄 Forcing refetch after create", "| Timestamp:", new Date().toISOString());
+			await queryClient.refetchQueries({ queryKey: listQueryKeys.all });
+			console.log("[useListsView] ✅ Refetch completed", "| Timestamp:", new Date().toISOString());
 			// Optional: Navigate to the newly created list
 			// navigate({ to: `/lists/${newList.id}` });
 		},

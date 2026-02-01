@@ -26,6 +26,16 @@ const COLOR_MAP = {
 const RESET_COLOR = "\x1b[0m";
 
 /**
+ * Stored log entry with type and text
+ */
+export interface StoredLogEntry {
+	type: string;
+	text: string;
+	location: string;
+	timestamp: number;
+}
+
+/**
  * Format console message with color and emoji based on type
  */
 function formatConsoleMessage(msg: ConsoleMessage): string {
@@ -52,6 +62,34 @@ function formatConsoleMessage(msg: ConsoleMessage): string {
 		: "";
 
 	return `${color}${emoji} [${type.toUpperCase()}] ${text}${locationStr}${RESET_COLOR}`;
+}
+
+/**
+ * Format stored log entry for output
+ */
+function formatStoredEntry(entry: StoredLogEntry): string {
+	const emoji =
+		entry.type === "error"
+			? "❌"
+			: entry.type === "warning"
+				? "⚠️"
+				: entry.type === "info"
+					? "ℹ️"
+					: entry.type === "pageerror"
+						? "💥"
+						: "📝";
+
+	const color = COLOR_MAP[entry.type as keyof typeof COLOR_MAP] || COLOR_MAP.log;
+	const locationStr = entry.location ? ` (${entry.location})` : "";
+
+	return `${color}${emoji} [${entry.type.toUpperCase()}] ${entry.text}${locationStr}${RESET_COLOR}`;
+}
+
+/**
+ * Format array of stored logs for output
+ */
+export function formatStoredLogs(logs: StoredLogEntry[]): string {
+	return logs.map(formatStoredEntry).join("\n");
 }
 
 /**
@@ -125,32 +163,64 @@ export function setupConsoleLogger(
 
 /**
  * Collect console messages into an array for later inspection.
- * Useful when you want to assert on console messages in tests.
+ * Logs are stored but not printed - use formatStoredLogs() to print them.
  *
  * @param page - Playwright page instance
- * @param categories - Array of log categories to capture
+ * @param options - Configuration options
  * @returns Array that will be populated with console messages
  *
  * @example
  * ```typescript
  * test('should log item creation', async ({ page }) => {
- *   const logs = collectConsoleLogs(page, ['[useListDetails]']);
+ *   const logs = collectConsoleLogs(page);
  *   await listPage.addItem('Milk');
- *   expect(logs.some(log => log.includes('CREATE onMutate'))).toBeTruthy();
+ *   // Logs are only printed if test fails (handled by fixture)
  * });
  * ```
  */
 export function collectConsoleLogs(
 	page: Page,
-	categories: readonly string[] = DEBUG_LOG_CATEGORIES,
-): string[] {
-	const logs: string[] = [];
+	options: {
+		categories?: readonly string[];
+		captureAll?: boolean;
+		verbose?: boolean;
+	} = {},
+): StoredLogEntry[] {
+	const {
+		categories = DEBUG_LOG_CATEGORIES,
+		captureAll = false,
+		verbose = false,
+	} = options;
+
+	const logs: StoredLogEntry[] = [];
 
 	page.on("console", (msg: ConsoleMessage) => {
 		const text = msg.text();
-		if (shouldCaptureMessage(text, categories)) {
-			logs.push(text);
-		}
+		const type = msg.type();
+
+		// Skip debug messages unless verbose mode
+		if (!verbose && type === "debug") return;
+
+		// Filter based on categories unless captureAll is true
+		if (!captureAll && !shouldCaptureMessage(text, categories)) return;
+
+		const location = msg.location();
+		logs.push({
+			type,
+			text,
+			location: location.url ? `${location.url}:${location.lineNumber}` : "",
+			timestamp: Date.now(),
+		});
+	});
+
+	// Also capture page errors
+	page.on("pageerror", (error) => {
+		logs.push({
+			type: "pageerror",
+			text: `${error.message}\nStack: ${error.stack}`,
+			location: "",
+			timestamp: Date.now(),
+		});
 	});
 
 	return logs;
