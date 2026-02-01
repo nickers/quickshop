@@ -33,8 +33,22 @@ function isEmptyQuantity(value: string | null): boolean {
 }
 
 /**
- * Łączy ilości przy konflikcie: existing + "+" + new.
- * Wartość "—" traktowana jak brak (pusty string/null). Gdy obie puste/null/"—" → "—".
+ * Parsuje string jako liczbę całkowitą (trim, opcjonalny minus, cyfry).
+ * Zwraca number lub null.
+ */
+function parseIntegerOrNull(value: string | null): number | null {
+	if (value == null) return null;
+	const trimmed = value.trim();
+	if (trimmed === "") return null;
+	if (!/^-?\d+$/.test(trimmed)) return null;
+	const n = parseInt(trimmed, 10);
+	return Number.isSafeInteger(n) ? n : null;
+}
+
+/**
+ * Łączy ilości przy konflikcie. Gdy **obie** wartości są liczbami całkowitymi
+ * (trim, opcjonalny minus, safe integer), zwraca ich **sumę**; w przeciwnym razie
+ * łączy przez '+'. Wartość '—' traktowana jak brak. Gdy obie puste/null/'—' → '—'.
  */
 export function suggestedQuantityForConflict(
 	existingQuantity: string | null,
@@ -43,7 +57,13 @@ export function suggestedQuantityForConflict(
 	const parts = [existingQuantity, newQuantity].filter(
 		(v): v is string => !isEmptyQuantity(v),
 	);
-	return parts.length > 0 ? parts.join("+") : PLACEHOLDER_NO_QUANTITY;
+	if (parts.length === 0) return PLACEHOLDER_NO_QUANTITY;
+	if (parts.length === 2) {
+		const a = parseIntegerOrNull(parts[0]);
+		const b = parseIntegerOrNull(parts[1]);
+		if (a !== null && b !== null) return String(a + b);
+	}
+	return parts.join("+");
 }
 
 /**

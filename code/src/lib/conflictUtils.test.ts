@@ -72,8 +72,60 @@ describe("suggestedQuantityForConflict", () => {
 		expect(suggestedQuantityForConflict("", "2")).toBe("2");
 	});
 
-	it("joins both with '+' when both filled", () => {
-		expect(suggestedQuantityForConflict("1", "2")).toBe("1+2");
+	it("returns sum when both are integers", () => {
+		expect(suggestedQuantityForConflict("1", "2")).toBe("3");
+	});
+
+	it("returns sum for two positive integers", () => {
+		expect(suggestedQuantityForConflict("2", "3")).toBe("5");
+	});
+
+	it("returns sum when one is zero", () => {
+		expect(suggestedQuantityForConflict("0", "1")).toBe("1");
+	});
+
+	it("returns '0' when both are '0'", () => {
+		expect(suggestedQuantityForConflict("0", "0")).toBe("0");
+	});
+
+	it("returns number when other is zero", () => {
+		expect(suggestedQuantityForConflict("5", "0")).toBe("5");
+	});
+
+	it("trims whitespace before parsing integers", () => {
+		expect(suggestedQuantityForConflict(" 2 ", " 3 ")).toBe("5");
+	});
+
+	it("joins with '+' when one value is not an integer", () => {
+		expect(suggestedQuantityForConflict("2", "szt")).toBe("2+szt");
+	});
+
+	it("joins with '+' when one value has unit", () => {
+		expect(suggestedQuantityForConflict("2", "500 g")).toBe("2+500 g");
+	});
+
+	it("joins with '+' when decimal", () => {
+		expect(suggestedQuantityForConflict("1", "2.5")).toBe("1+2.5");
+	});
+
+	it("parses leading zeros as integers", () => {
+		expect(suggestedQuantityForConflict("02", "03")).toBe("5");
+	});
+
+	it("returns sum for negative and positive", () => {
+		expect(suggestedQuantityForConflict("-1", "3")).toBe("2");
+	});
+
+	it("returns sum when both are safe integers at upper bound", () => {
+		expect(
+			suggestedQuantityForConflict("9007199254740991", "1"),
+		).toBe("9007199254740992");
+	});
+
+	it("joins with '+' when result would exceed safe integer", () => {
+		expect(
+			suggestedQuantityForConflict("9007199254740992", "1"),
+		).toBe("9007199254740992+1");
 	});
 
 	it("handles single value (only existing)", () => {
@@ -84,7 +136,7 @@ describe("suggestedQuantityForConflict", () => {
 		expect(suggestedQuantityForConflict(null, "1 l")).toBe("1 l");
 	});
 
-	it("handles two non-numeric quantities", () => {
+	it("joins with '+' for two non-integer strings", () => {
 		expect(suggestedQuantityForConflict("500 g", "1 l")).toBe("500 g+1 l");
 	});
 
@@ -165,7 +217,7 @@ describe("computeSetConflicts", () => {
 		expect(result.nonConflicting).toHaveLength(0);
 	});
 
-	it("returns conflicts with suggestedQuantity '1+2' when both have values", () => {
+	it("returns conflicts with suggestedQuantity sum when both are integers", () => {
 		const activeListItems = [
 			makeListItem({ name: "Mleko", quantity: "1", id: "li-mleko" }),
 		];
@@ -176,7 +228,7 @@ describe("computeSetConflicts", () => {
 			listId,
 		});
 		expect(result.conflicts).toHaveLength(1);
-		expect(result.conflicts[0].suggestedQuantity).toBe("1+2");
+		expect(result.conflicts[0].suggestedQuantity).toBe("3");
 		expect(result.conflicts[0].existingItem.id).toBe("li-mleko");
 		expect(result.conflicts[0].newItemCandidate.list_id).toBe(listId);
 	});
@@ -192,7 +244,7 @@ describe("computeSetConflicts", () => {
 			listId,
 		});
 		expect(result.conflicts).toHaveLength(1);
-		expect(result.conflicts[0].suggestedQuantity).toBe("1+2");
+		expect(result.conflicts[0].suggestedQuantity).toBe("3");
 	});
 
 	it("mix of conflicts and nonConflicting", () => {
@@ -212,7 +264,7 @@ describe("computeSetConflicts", () => {
 		});
 		expect(result.conflicts).toHaveLength(2);
 		expect(result.conflicts[0].suggestedQuantity).toBe("1 l");
-		expect(result.conflicts[1].suggestedQuantity).toBe("1+2");
+		expect(result.conflicts[1].suggestedQuantity).toBe("3");
 		expect(result.nonConflicting).toHaveLength(1);
 		expect(result.nonConflicting[0].name).toBe("Jajka");
 	});
