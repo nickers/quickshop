@@ -3,6 +3,8 @@
  * Runs with authenticated storage state (E2E_USER1).
  */
 import { expect, test } from "@playwright/test";
+import { formatTimestamp } from "./helpers/dateFormat";
+import { clickWhenReady } from "./helpers/interactions";
 import { ListDetailsPage } from "./page-objects/ListDetailsPage";
 import { ListsPage } from "./page-objects/ListsPage";
 
@@ -11,8 +13,11 @@ test.describe("List details – items", () => {
 		const listsPage = new ListsPage(page);
 		await listsPage.goto();
 		await listsPage.clickNewList();
-		await listsPage.createList("E2E Lista produktów");
-		await listsPage.clickList("E2E Lista produktów");
+		// Use unique list name for each test run to avoid conflicts
+		const uniqueListName = `E2E Test ${formatTimestamp()}`;
+		await listsPage.createList(uniqueListName);
+		await listsPage.expectListVisible(uniqueListName);
+		await listsPage.clickList(uniqueListName);
 		await expect(page).toHaveURL(/\/lists\/[a-f0-9-]+/);
 	});
 
@@ -69,8 +74,11 @@ test.describe("List details – RWD", () => {
 		const listsPage = new ListsPage(page);
 		await listsPage.goto();
 		await listsPage.clickNewList();
-		await listsPage.createList("E2E RWD");
-		await listsPage.clickList("E2E RWD");
+		// Use unique list name for each test run to avoid conflicts
+		const uniqueListName = `E2E RWD ${formatTimestamp()}`;
+		await listsPage.createList(uniqueListName);
+		await listsPage.expectListVisible(uniqueListName);
+		await listsPage.clickList(uniqueListName);
 	});
 
 	test("RWD-01: StickyInputBar visible and usable on mobile viewport", async ({
@@ -79,7 +87,7 @@ test.describe("List details – RWD", () => {
 		await page.setViewportSize({ width: 390, height: 844 });
 		await page.getByTestId("sticky-input-bar").waitFor({ state: "visible" });
 		await page.getByTestId("add-item-input").fill("Mobile item");
-		await page.getByTestId("sticky-input-bar").getByRole("button", { name: "Dodaj produkt" }).click();
-		await page.getByRole("group", { name: "Mobile item" }).waitFor({ state: "visible" });
+		await clickWhenReady(page.getByTestId("add-item-submit-btn"));
+		await page.getByRole("group", { name: "Mobile item", exact: true }).waitFor({ state: "visible" });
 	});
 });

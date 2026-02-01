@@ -67,6 +67,7 @@ export function StickyInputBar({
 					size="icon"
 					disabled={isSubmitting || !value.trim()}
 					aria-label="Dodaj produkt"
+					data-testid="add-item-submit-btn"
 				>
 					<Plus className="h-5 w-5" />
 				</Button>

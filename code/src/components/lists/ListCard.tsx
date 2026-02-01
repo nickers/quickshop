@@ -67,6 +67,7 @@ export function ListCard({ list, onClick, onDeleteClick }: ListCardProps) {
 								size="icon"
 								className="h-8 w-8"
 								onClick={(e) => e.stopPropagation()}
+								data-testid="list-card-menu"
 							>
 								<MoreVertical className="h-4 w-4" />
 								<span className="sr-only">Otwórz menu</span>

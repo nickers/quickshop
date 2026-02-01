@@ -76,7 +76,7 @@ export function EmailAuthForm({
 				)}
 			</div>
 
-			<Button type="submit" className="w-full" disabled={isLoading}>
+			<Button type="submit" className="w-full" disabled={isLoading} data-testid="auth-submit-btn">
 				{isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
 				{isLoading
 					? mode === "signin"

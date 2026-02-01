@@ -22,7 +22,9 @@ export default defineConfig({
 	use: {
 		// Treat empty BASE_URL as unset so CI uses localhost when Playwright starts webServer
 		baseURL: process.env.BASE_URL || "http://localhost:3000",
-		trace: "on-first-retry",
+		trace: "retain-on-failure", // Keep trace for all failures
+		screenshot: "only-on-failure", // Screenshot on failures
+		video: "retain-on-failure", // Video for failures
 	},
 	projects: [
 		{ name: "setup", testMatch: /auth\.setup\.ts/ },

@@ -14,10 +14,11 @@ export function AuthModeSwitch({
 		<Tabs
 			value={currentMode}
 			onValueChange={(value) => onModeChange(value as AuthMode)}
+			data-testid="auth-mode-switch"
 		>
 			<TabsList className="grid w-full grid-cols-2">
-				<TabsTrigger value="signin">Logowanie</TabsTrigger>
-				<TabsTrigger value="signup">Rejestracja</TabsTrigger>
+				<TabsTrigger value="signin" data-testid="auth-tab-signin">Logowanie</TabsTrigger>
+				<TabsTrigger value="signup" data-testid="auth-tab-signup">Rejestracja</TabsTrigger>
 			</TabsList>
 		</Tabs>
 	);

@@ -5,6 +5,7 @@
 import { expect, test as setup } from "@playwright/test";
 import fs from "node:fs";
 import path from "node:path";
+import { clickWhenReady } from "./helpers/interactions";
 
 const authDir = path.join(process.cwd(), ".auth");
 const authFile = path.join(authDir, "user.json");
@@ -22,10 +23,10 @@ setup("authenticate as E2E_USER1", async ({ page }) => {
 	await page.goto("/auth");
 	await expect(page.getByTestId("auth-page")).toBeVisible();
 
-	await page.getByRole("tab", { name: "Logowanie" }).click();
+	await clickWhenReady(page.getByTestId("auth-tab-signin"));
 	await page.getByTestId("auth-email-form").getByPlaceholder("twoj@email.com").fill(email);
 	await page.getByTestId("auth-email-form").getByPlaceholder("••••••••").fill(password);
-	await page.getByRole("button", { name: "Zaloguj się" }).click();
+	await clickWhenReady(page.getByTestId("auth-submit-btn"));
 
 	await expect(page).toHaveURL(/\/lists/);
 	await expect(page.getByTestId("lists-page")).toBeVisible({ timeout: 10_000 });

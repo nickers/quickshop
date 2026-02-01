@@ -1,4 +1,5 @@
 import type { Page } from "@playwright/test";
+import { clickWhenReady } from "../helpers/interactions";
 
 export class AuthPage {
 	constructor(private readonly page: Page) {}
@@ -13,10 +14,10 @@ export class AuthPage {
 	}
 
 	async login(email: string, password: string) {
-		await this.page.getByRole("tab", { name: "Logowanie" }).click();
+		await clickWhenReady(this.page.getByTestId("auth-tab-signin"));
 		await this.page.getByTestId("auth-email-form").getByPlaceholder("twoj@email.com").fill(email);
 		await this.page.getByTestId("auth-email-form").getByPlaceholder("••••••••").fill(password);
-		await this.page.getByRole("button", { name: "Zaloguj się" }).click();
+		await clickWhenReady(this.page.getByTestId("auth-submit-btn"));
 	}
 
 	async expectRedirectToLists() {
@@ -29,7 +30,7 @@ export class AuthPage {
 	}
 
 	async submitEmptyLogin() {
-		await this.page.getByRole("tab", { name: "Logowanie" }).click();
-		await this.page.getByRole("button", { name: "Zaloguj się" }).click();
+		await clickWhenReady(this.page.getByTestId("auth-tab-signin"));
+		await clickWhenReady(this.page.getByTestId("auth-submit-btn"));
 	}
 }

@@ -61,10 +61,10 @@ export function ItemConflictDialog({
 					</div>
 				</div>
 				<DialogFooter>
-					<Button variant="outline" onClick={onCancel}>
+					<Button variant="outline" onClick={onCancel} data-testid="item-conflict-cancel">
 						Anuluj
 					</Button>
-					<Button onClick={handleConfirm}>Zatwierdź</Button>
+					<Button onClick={handleConfirm} data-testid="item-conflict-confirm">Zatwierdź</Button>
 				</DialogFooter>
 			</DialogContent>
 		</Dialog>

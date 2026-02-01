@@ -23,3 +23,38 @@ alwaysApply: false
 - Use expect assertions with specific matchers
 - Leverage parallel execution for faster test runs
 - Follow 'Arrange', 'Act', 'Assert' approach to test structure for simplicity and readability.
+
+#### INTERACTION HELPERS
+
+Use the helper functions from `./e2e/helpers/interactions.ts` for consistent and reliable interactions:
+
+- **`clickWhenReady(locator)`** - Waits for visibility and clicks. Use for standard buttons and links.
+  ```typescript
+  import { clickWhenReady } from "./helpers/interactions";
+  await clickWhenReady(page.getByTestId("submit-btn"));
+  ```
+
+- **`clickDropdownTrigger(locator)`** - Hovers then clicks. Use specifically for Radix UI dropdown menu triggers.
+  ```typescript
+  import { clickDropdownTrigger } from "./helpers/interactions";
+  await clickDropdownTrigger(page.getByTestId("menu-button"));
+  ```
+
+**DO NOT** manually write repetitive `waitFor()` + `click()` patterns - use the helpers instead.
+
+#### BEST PRACTICES FOR RADIX UI / SHADCN COMPONENTS
+
+- **DropdownMenu interactions**: ALWAYS use `clickDropdownTrigger()` when opening dropdown menus
+  ```typescript
+  // ✅ CORRECT - use helper for Radix UI compatibility
+  await clickDropdownTrigger(menuButton);
+  
+  // ❌ WRONG - manual pattern, inconsistent
+  await menuButton.waitFor({ state: "visible" });
+  await menuButton.hover();
+  await menuButton.click();
+  ```
+- **Animated components**: Prefer `data-testid` over `role + name` selectors for menu items to avoid detachment issues during animations
+- **Menu items**: Always wait for visibility with `waitFor({ state: "visible" })` before clicking
+- **Keyboard navigation**: Avoid using keyboard navigation (ArrowDown, Enter) in tests - use direct clicks instead
+- **Test isolation**: Use unique names (e.g., `Date.now()`) for test data to avoid conflicts between test runs
