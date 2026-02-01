@@ -30,18 +30,14 @@ Token: Cloudflare Dashboard → My Profile → API Tokens → Create Token → t
 
 ## E2E tests (TestsE2E)
 
-The **e2e** job uses the GitHub environment **TestsE2E**. E2E tests run against a local dev server started by Playwright in CI.
+The **e2e** job uses the GitHub environment **TestsE2E**. E2E tests run against a local dev server started by Playwright in CI. Playwright loads `code/.env.e2e` from the repo (emails, Vite vars); only passwords must come from the environment.
 
 4. In the repo: **Settings** → **Environments** → **TestsE2E** (create if needed).
-5. Add variables and secrets so auth setup and tests can run:
+5. Add secrets so auth setup can log in (emails and Vite vars come from committed `code/.env.e2e`):
 
-   | Type    | Name                            | Description |
-   |---------|---------------------------------|-------------|
-   | Variable| `VITE_SUPABASE_URL`             | Supabase project URL (same as Production) |
-   | Variable| `VITE_SUPABASE_PUBLISHABLE_KEY` | Supabase anon/public key |
-   | Variable| `E2E_USER1_EMAIL`               | Email of the first E2E test user (e.g. test1@example.com) |
-   | Variable| `E2E_USER2_EMAIL`               | Email of the second E2E test user |
-   | Secret  | `E2E_USER1_PASSWORD`            | Password for E2E_USER1 |
-   | Secret  | `E2E_USER2_PASSWORD`            | Password for E2E_USER2 |
+   | Type   | Name                 | Description        |
+   |--------|----------------------|--------------------|
+   | Secret | `E2E_USER1_PASSWORD` | Password for E2E_USER1 (email in `.env.e2e`) |
+   | Secret | `E2E_USER2_PASSWORD` | Password for E2E_USER2 |
 
-   **Optional:** `BASE_URL` — if unset or empty, Playwright uses `http://localhost:3000` and starts the dev server automatically.
+   **Optional:** `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY` — if set in the environment, they override `code/.env.e2e`. `BASE_URL` — if unset or empty, Playwright uses `http://localhost:3000` and starts the dev server.

@@ -41,9 +41,8 @@ jobs:
           path: ${{ env.WORKING_DIR }}/coverage/coverage-summary.json
           retention-days: 7
 
-  # TestsE2E env must provide: VITE_SUPABASE_URL, VITE_SUPABASE_PUBLISHABLE_KEY,
-  # E2E_USER1_EMAIL, E2E_USER1_PASSWORD, E2E_USER2_EMAIL, E2E_USER2_PASSWORD.
-  # BASE_URL optional; if unset, Playwright uses http://localhost:3000 and starts dev server.
+  # TestsE2E: set E2E_USER1_PASSWORD and E2E_USER2_PASSWORD (secrets). Emails/Vite vars from code/.env.e2e.
+  # Optional: VITE_SUPABASE_*, BASE_URL. If BASE_URL unset, Playwright uses http://localhost:3000.
   e2e:
     name: E2E tests
     runs-on: ubuntu-latest
