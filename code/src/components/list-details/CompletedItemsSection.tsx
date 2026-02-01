@@ -23,7 +23,7 @@ export function CompletedItemsSection({
 	if (items.length === 0) return null;
 
 	return (
-		<div className="p-4 pt-2">
+		<div className="p-4 pt-2" data-testid="completed-items-section">
 			<div className="flex items-center gap-4 my-4">
 				<Separator className="flex-1" />
 				<span className="text-sm text-muted-foreground font-medium">

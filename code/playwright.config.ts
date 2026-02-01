@@ -7,7 +7,7 @@ dotenv.config({ path: path.resolve(process.cwd(), ".env.e2e") });
 
 export default defineConfig({
 	testDir: "./e2e",
-	fullyParallel: true,
+	fullyParallel: false,
 	forbidOnly: !!process.env.CI,
 	retries: process.env.CI ? 1 : 0,
 	workers: process.env.CI ? 1 : undefined,
@@ -18,7 +18,24 @@ export default defineConfig({
 		baseURL: process.env.BASE_URL ?? "http://localhost:3000",
 		trace: "on-first-retry",
 	},
-	projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
+	projects: [
+		{ name: "setup", testMatch: /auth\.setup\.ts/ },
+		{
+			name: "chromium-no-auth",
+			testMatch: /auth\.spec\.ts/,
+			use: { ...devices["Desktop Chrome"] },
+		},
+		{
+			name: "chromium-authenticated",
+			testMatch: /\.spec\.ts$/,
+			testIgnore: [/auth\.spec\.ts$/],
+			use: {
+				...devices["Desktop Chrome"],
+				storageState: path.join(process.cwd(), ".auth", "user.json"),
+			},
+			dependencies: ["setup"],
+		},
+	],
 	webServer: {
 		command: "npm run dev:e2e",
 		url: "http://localhost:3000",

@@ -14,6 +14,7 @@ export function BottomNav() {
 		<nav
 			className="fixed bottom-0 left-0 right-0 z-40 border-t bg-background pb-[env(safe-area-inset-bottom)]"
 			aria-label="Główna nawigacja"
+			data-testid="bottom-nav"
 		>
 			<div className="container mx-auto flex max-w-md justify-around">
 				{navItems.map(({ to, label, icon: Icon }) => {
@@ -24,6 +25,7 @@ export function BottomNav() {
 						<Link
 							key={to}
 							to={to}
+							data-testid={`bottom-nav-${to.slice(1) || "lists"}`}
 							className={`flex flex-col items-center gap-1 py-3 px-4 text-xs transition-colors ${
 								isCurrent
 									? "text-primary font-medium"

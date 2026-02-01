@@ -55,6 +55,7 @@ export function ListCard({ list, onClick, onDeleteClick }: ListCardProps) {
 		<Card
 			className="cursor-pointer transition-shadow hover:shadow-md"
 			onClick={handleCardClick}
+			data-testid={`list-card-${list.id}`}
 		>
 			<CardHeader>
 				<CardTitle className="text-lg">{list.name}</CardTitle>
@@ -75,6 +76,7 @@ export function ListCard({ list, onClick, onDeleteClick }: ListCardProps) {
 							<DropdownMenuItem
 								className="text-red-600 focus:text-red-600"
 								onSelect={handleDeleteClick}
+								data-testid="list-card-delete"
 							>
 								<Trash2 className="mr-2 h-4 w-4" />
 								Usuń listę

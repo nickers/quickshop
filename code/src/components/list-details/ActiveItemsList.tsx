@@ -119,7 +119,7 @@ export function ActiveItemsList({
 			onDragEnd={handleDragEnd}
 		>
 			<SortableContext items={itemIds} strategy={verticalListSortingStrategy}>
-				<div className="p-4 pb-0">
+				<div className="p-4 pb-0" data-testid="active-items-list">
 					{items.map((item) => (
 						<SortableRow
 							key={item.id}

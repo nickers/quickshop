@@ -128,7 +128,10 @@ function ListDetailsPage() {
 	}
 
 	return (
-		<div className="flex flex-col min-h-screen pb-20 relative bg-background">
+		<div
+			className="flex flex-col min-h-screen pb-20 relative bg-background"
+			data-testid="list-details-page"
+		>
 			<ListDetailsHeader
 				list={list}
 				onShare={() => setShareModalOpen(true)}

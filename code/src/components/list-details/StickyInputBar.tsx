@@ -38,7 +38,7 @@ export function StickyInputBar({
 	};
 
 	return (
-		<div className="sticky bottom-0 left-0 right-0 bg-background border-t p-4 pb-safe-area-bottom">
+		<div className="sticky bottom-0 left-0 right-0 bg-background border-t p-4 pb-safe-area-bottom" data-testid="sticky-input-bar">
 			<form
 				onSubmit={handleSubmit}
 				className="flex gap-2 max-w-screen-md mx-auto"
@@ -52,6 +52,7 @@ export function StickyInputBar({
 					}}
 					placeholder="Dodaj produkt..."
 					disabled={isSubmitting}
+					data-testid="add-item-input"
 					className={cn(
 						"flex-1 transition-[box-shadow] duration-150",
 						showError &&

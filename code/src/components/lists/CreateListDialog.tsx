@@ -86,7 +86,7 @@ export function CreateListDialog({
 
 	return (
 		<Dialog open={isOpen} onOpenChange={handleClose}>
-			<DialogContent className="sm:max-w-[425px]">
+			<DialogContent className="sm:max-w-[425px]" data-testid="create-list-dialog">
 				<DialogHeader>
 					<DialogTitle>Nowa lista zakupów</DialogTitle>
 					<DialogDescription>
@@ -108,6 +108,7 @@ export function CreateListDialog({
 								disabled={isCreating}
 								autoFocus
 								maxLength={100}
+								data-testid="create-list-name-input"
 							/>
 							{error && (
 								<p className="text-sm text-red-500" role="alert">
@@ -129,9 +130,13 @@ export function CreateListDialog({
 						>
 							Anuluj
 						</Button>
-						<Button type="submit" disabled={!isNameValid || isCreating}>
-							{isCreating ? "Tworzenie..." : "Utwórz"}
-						</Button>
+						<Button
+								type="submit"
+								disabled={!isNameValid || isCreating}
+								data-testid="create-list-submit"
+							>
+								{isCreating ? "Tworzenie..." : "Utwórz"}
+							</Button>
 					</DialogFooter>
 				</form>
 			</DialogContent>

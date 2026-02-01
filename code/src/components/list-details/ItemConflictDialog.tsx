@@ -42,7 +42,7 @@ export function ItemConflictDialog({
 
 	return (
 		<Dialog open={isOpen} onOpenChange={(open) => !open && onCancel()}>
-			<DialogContent>
+			<DialogContent data-testid="item-conflict-dialog">
 				<DialogHeader>
 					<DialogTitle>Produkt już istnieje</DialogTitle>
 					<DialogDescription>

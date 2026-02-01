@@ -43,7 +43,7 @@ function ListsView() {
 	} = useListsView();
 
 	return (
-		<div className="space-y-6">
+		<div className="space-y-6" data-testid="lists-page">
 			<ListsHeader onCreateClick={() => setIsCreateDialogOpen(true)} />
 
 			{/* Loading state */}

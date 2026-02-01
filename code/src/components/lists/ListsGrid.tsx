@@ -47,7 +47,7 @@ export function ListsGrid({
 
 	// Jedna kolumna – karty na pełną szerokość, bez efektu „ściśniętych kolumn” (max-w-md)
 	return (
-		<div className="grid grid-cols-1 gap-4">
+		<div className="grid grid-cols-1 gap-4" data-testid="lists-grid">
 			{lists.map((list) => (
 				<ListCard
 					key={list.id}

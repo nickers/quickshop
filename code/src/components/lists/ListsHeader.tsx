@@ -13,7 +13,11 @@ interface ListsHeaderProps {
 export function ListsHeader({ onCreateClick }: ListsHeaderProps) {
 	return (
 		<div className="flex items-center justify-end pt-4">
-			<Button onClick={onCreateClick} size="default">
+			<Button
+				onClick={onCreateClick}
+				size="default"
+				data-testid="lists-new-list-btn"
+			>
 				<Plus className="mr-2 h-4 w-4" />
 				Nowa lista
 			</Button>

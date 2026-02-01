@@ -236,6 +236,7 @@ export function ListItemRow({
 							isDragging && "opacity-80 shadow-md z-10",
 						)}
 						style={{ transform: `translateX(-${swipeOffset}px)` }}
+						data-testid={`list-item-row-${item.id}`}
 					>
 						{rowContent}
 					</div>
@@ -292,6 +293,7 @@ export function ListItemRow({
 					isPending && "opacity-70",
 					isDragging && "opacity-80 shadow-md z-10",
 				)}
+				data-testid={`list-item-row-${item.id}`}
 			>
 				{rowContent}
 			</div>
