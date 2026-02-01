@@ -35,11 +35,20 @@ export function useListsView() {
 		fetchUser();
 	}, []);
 
+	// Log lists state changes for debugging
+	useEffect(() => {
+		if (listsQuery.data) {
+			console.log("[useListsView] 📊 Lists state changed", "| Count:", listsQuery.data.length, "| Lists:", listsQuery.data.map(l => l.name).join(", "), "| Timestamp:", new Date().toISOString());
+		}
+	}, [listsQuery.data]);
+
 	// Query: Fetch all lists with item counts
 	const listsQuery = useQuery({
 		queryKey: listQueryKeys.all,
 		queryFn: async (): Promise<ListViewModel[]> => {
+			console.log("[useListsView] 🔵 listsQuery START", "| Timestamp:", new Date().toISOString());
 			const lists = await listsService.getAllLists();
+			console.log("[useListsView] 📋 Fetched lists:", lists.length);
 
 			// Fetch item counts for each list
 			const listsWithCounts = await Promise.all(
@@ -54,7 +63,7 @@ export function useListsView() {
 							ownerName: undefined, // TODO: Implement owner name fetching with join
 						} as ListViewModel;
 					} catch (error) {
-						console.error(`Failed to fetch items for list ${list.id}:`, error);
+						console.error(`[useListsView] Failed to fetch items for list ${list.id}:`, error);
 						// Return list with zero counts if fetching items fails
 						return {
 							...list,
@@ -67,6 +76,7 @@ export function useListsView() {
 				}),
 			);
 
+			console.log("[useListsView] ✅ listsQuery SUCCESS", "| Total lists:", listsWithCounts.length, "| Timestamp:", new Date().toISOString());
 			return listsWithCounts;
 		},
 		staleTime: 30000, // 30 seconds
@@ -75,8 +85,12 @@ export function useListsView() {
 
 	// Mutation: Create new list
 	const createListMutation = useMutation({
-		mutationFn: (data: CreateListDTO) => listsService.createList(data),
-		onSuccess: () => {
+		mutationFn: (data: CreateListDTO) => {
+			console.log("[useListsView] 🚀 createList mutationFn called", "| Name:", data.name, "| Timestamp:", new Date().toISOString());
+			return listsService.createList(data);
+		},
+		onSuccess: (data) => {
+			console.log("[useListsView] ✅ createList onSuccess", "| ListId:", data.id, "| Name:", data.name, "| Timestamp:", new Date().toISOString());
 			// Invalidate queries to refresh the list
 			queryClient.invalidateQueries({ queryKey: listQueryKeys.all });
 			// Close dialog
@@ -85,15 +99,19 @@ export function useListsView() {
 			// navigate({ to: `/lists/${newList.id}` });
 		},
 		onError: (error) => {
-			console.error("Failed to create list:", error);
+			console.error("[useListsView] ❌ createList onError", "| Error:", error, "| Timestamp:", new Date().toISOString());
 			// Error handling will be done in the component
 		},
 	});
 
 	// Mutation: Delete list with optimistic updates
 	const deleteListMutation = useMutation({
-		mutationFn: (listId: string) => listsService.deleteList(listId),
+		mutationFn: (listId: string) => {
+			console.log("[useListsView] 🚀 deleteList mutationFn called", "| ListId:", listId, "| Timestamp:", new Date().toISOString());
+			return listsService.deleteList(listId);
+		},
 		onMutate: async (listId) => {
+			console.log("[useListsView] ⏸️ deleteList onMutate", "| ListId:", listId, "| Timestamp:", new Date().toISOString());
 			// Cancel any outgoing refetches
 			await queryClient.cancelQueries({ queryKey: listQueryKeys.all });
 
@@ -101,24 +119,31 @@ export function useListsView() {
 			const previousLists = queryClient.getQueryData<ListViewModel[]>(
 				listQueryKeys.all,
 			);
+			console.log("[useListsView] 📊 Previous lists count:", previousLists?.length ?? 0);
 
 			// Optimistically update to remove the list
 			queryClient.setQueryData<ListViewModel[]>(
 				listQueryKeys.all,
-				(old) => old?.filter((list) => list.id !== listId) ?? [],
+				(old) => {
+					const filtered = old?.filter((list) => list.id !== listId) ?? [];
+					console.log("[useListsView] ✨ Optimistic delete applied", "| New count:", filtered.length);
+					return filtered;
+				},
 			);
 
 			// Return context with the snapshot
 			return { previousLists };
 		},
 		onError: (error, _listId, context) => {
+			console.error("[useListsView] ❌ deleteList onError", "| Error:", error, "| Timestamp:", new Date().toISOString());
 			// Rollback on error
 			if (context?.previousLists) {
+				console.log("[useListsView] ⏪ Rollback to previous lists", "| Count:", context.previousLists.length);
 				queryClient.setQueryData(listQueryKeys.all, context.previousLists);
 			}
-			console.error("Failed to delete list:", error);
 		},
 		onSettled: () => {
+			console.log("[useListsView] ✅ deleteList onSettled", "| Timestamp:", new Date().toISOString());
 			// Refetch to sync with server
 			queryClient.invalidateQueries({ queryKey: listQueryKeys.all });
 		},

@@ -53,18 +53,32 @@ export function getContext() {
 		},
 		// Add global mutation cache callbacks
 		mutationCache: new MutationCache({
+			onMutate: (_variables, mutation) => {
+				console.log(
+					"[MutationCache] ⏰ Mutation starting (onMutate):",
+					mutation.options.mutationKey,
+					"| State:",
+					mutation.state.status,
+					"| Timestamp:",
+					new Date().toISOString(),
+				);
+			},
 			onSuccess: (_data, _variables, _context, mutation) => {
 				console.log(
-					"[MutationCache] Mutation succeeded:",
+					"[MutationCache] ✅ Mutation succeeded:",
 					mutation.options.mutationKey,
+					"| State:",
+					mutation.state.status,
 				);
 				// Invalidate queries after each successful mutation
 				if (mutation.options.mutationKey?.[0] === "list-items") {
 					const listId = mutation.options.mutationKey[2];
 					if (listId) {
 						console.log(
-							"[MutationCache] Invalidating queries for list:",
+							"[MutationCache] 🔄 Invalidating queries for list:",
 							listId,
+							"| Timestamp:",
+							new Date().toISOString(),
 						);
 						queryClient.invalidateQueries({ queryKey: ["list-items", listId] });
 					}
@@ -72,9 +86,24 @@ export function getContext() {
 			},
 			onError: (error, _variables, _context, mutation) => {
 				console.error(
-					"[MutationCache] Mutation failed:",
+					"[MutationCache] ❌ Mutation failed:",
 					mutation.options.mutationKey,
+					"| Error:",
 					error,
+					"| State:",
+					mutation.state.status,
+				);
+			},
+			onSettled: (_data, _error, _variables, _context, mutation) => {
+				console.log(
+					"[MutationCache] 🏁 Mutation settled:",
+					mutation.options.mutationKey,
+					"| State:",
+					mutation.state.status,
+					"| HasError:",
+					!!_error,
+					"| Timestamp:",
+					new Date().toISOString(),
 				);
 			},
 		}),
@@ -202,14 +231,15 @@ export function Provider({
 	// Set up online event listener to resume paused mutations
 	useEffect(() => {
 		const handleOnline = () => {
-			console.log("[QueryClient] Going online, resuming paused mutations...");
+			const pausedCount = queryClient.getMutationCache().getAll().filter(m => m.state.isPaused).length;
+			console.log("[QueryClient] 🌐 Going online, resuming paused mutations...", "| Paused count:", pausedCount, "| Timestamp:", new Date().toISOString());
 			// Resume paused mutations when coming back online.
 			// Do NOT call invalidateQueries() here: it would refetch before all mutations
 			// complete and overwrite cache with server data missing the last updates.
 			// MutationCache.onSuccess already invalidates the specific list when each
 			// mutation succeeds, so we get fresh data per list as each mutation finishes.
 			queryClient.resumePausedMutations().then(() => {
-				console.log("[QueryClient] All paused mutations resumed");
+				console.log("[QueryClient] ✅ All paused mutations resumed", "| Timestamp:", new Date().toISOString());
 			});
 		};
 
@@ -230,14 +260,19 @@ export function Provider({
 				},
 			}}
 			onSuccess={() => {
+				const allMutations = queryClient.getMutationCache().getAll();
+				const pausedCount = allMutations.filter(m => m.state.isPaused).length;
 				console.log(
-					"[QueryClient] Restored from localStorage, setting mutation defaults...",
+					"[QueryClient] 💾 Restored from localStorage, setting mutation defaults...",
+					"| Total mutations:", allMutations.length,
+					"| Paused:", pausedCount,
+					"| Timestamp:", new Date().toISOString(),
 				);
 				// Set mutation defaults FIRST before resuming
 				queryClient.setMutationDefaults(["list-items"], {
 					networkMode: "offlineFirst",
 					mutationFn: async (variables: MutationVariables) => {
-						console.log("[QueryClient] Executing mutation:", variables.type);
+						console.log("[QueryClient] 🚀 Executing mutation:", variables.type, "| Variables:", variables, "| Timestamp:", new Date().toISOString());
 						switch (variables.type) {
 							case "create":
 								return listItemsService.createItem(variables.data);
@@ -251,12 +286,12 @@ export function Provider({
 					},
 				});
 
-				console.log("[QueryClient] Resuming paused mutations after restore...");
+				console.log("[QueryClient] ▶️ Resuming paused mutations after restore...", "| Timestamp:", new Date().toISOString());
 				// Resume paused mutations after restore from localStorage.
 				// This is critical - without this, offline mutations won't be retried after page reload.
 				// Do NOT call invalidateQueries() here: same race as on reconnect (see handleOnline).
 				queryClient.resumePausedMutations().then(() => {
-					console.log("[QueryClient] All restored mutations resumed");
+					console.log("[QueryClient] ✅ All restored mutations resumed", "| Timestamp:", new Date().toISOString());
 				});
 			}}
 		>

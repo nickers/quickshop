@@ -56,6 +56,7 @@ export interface IListService {
 
 export class ListsService implements IListService {
 	async getAllLists(): Promise<ShoppingList[]> {
+		console.log("[ListsService] 🔵 getAllLists START", "| Timestamp:", new Date().toISOString());
 		// Get current user
 		const {
 			data: { user },
@@ -68,15 +69,20 @@ export class ListsService implements IListService {
 			.select("list_id")
 			.eq("user_id", user.id);
 
-		if (memberError) throw memberError;
+		if (memberError) {
+			console.error("[ListsService] ❌ getAllLists ERROR (members)", "| Error:", memberError, "| Timestamp:", new Date().toISOString());
+			throw memberError;
+		}
 
 		// If user has no lists, return empty array
 		if (!memberData || memberData.length === 0) {
+			console.log("[ListsService] ✅ getAllLists SUCCESS (empty)", "| Timestamp:", new Date().toISOString());
 			return [];
 		}
 
 		// Extract list IDs
 		const listIds = memberData.map((m) => m.list_id);
+		console.log("[ListsService] 📋 List IDs from members:", listIds);
 
 		// Step 2: Fetch the actual lists using the IDs
 		const { data, error } = await supabaseClient
@@ -85,28 +91,40 @@ export class ListsService implements IListService {
 			.in("id", listIds)
 			.order("updated_at", { ascending: false });
 
-		if (error) throw error;
+		if (error) {
+			console.error("[ListsService] ❌ getAllLists ERROR (lists)", "| Error:", error, "| Timestamp:", new Date().toISOString());
+			throw error;
+		}
+		console.log("[ListsService] ✅ getAllLists SUCCESS", "| Count:", data.length, "| Lists:", data.map(l => l.name).join(", "), "| Timestamp:", new Date().toISOString());
 		return data;
 	}
 
 	async getListById(listId: UUID): Promise<ShoppingList> {
+		console.log("[ListsService] 🔵 getListById START", "| ListId:", listId, "| Timestamp:", new Date().toISOString());
 		const { data, error } = await supabaseClient
 			.from("lists")
 			.select("*")
 			.eq("id", listId)
 			.single();
 
-		if (error) throw error;
+		if (error) {
+			console.error("[ListsService] ❌ getListById ERROR", "| Error:", error, "| Timestamp:", new Date().toISOString());
+			throw error;
+		}
+		console.log("[ListsService] ✅ getListById SUCCESS", "| Name:", data.name, "| Timestamp:", new Date().toISOString());
 		return data;
 	}
 
 	async createList(data: CreateListDTO): Promise<ShoppingList> {
+		console.log("[ListsService] 🔵 createList START", "| Name:", data.name, "| Timestamp:", new Date().toISOString());
 		const {
 			data: { user },
 			error: authError,
 		} = await supabaseClient.auth.getUser();
-		if (authError || !user)
+		if (authError || !user) {
+			console.error("[ListsService] ❌ createList AUTH ERROR", "| Error:", authError, "| Timestamp:", new Date().toISOString());
 			throw new Error("User must be logged in to create a list");
+		}
 
 		// Step 1: Create the list
 		const { data: newList, error } = await supabaseClient
@@ -118,10 +136,15 @@ export class ListsService implements IListService {
 			.select()
 			.single();
 
-		if (error) throw error;
+		if (error) {
+			console.error("[ListsService] ❌ createList ERROR (list insert)", "| Error:", error, "| Timestamp:", new Date().toISOString());
+			throw error;
+		}
+		console.log("[ListsService] ✅ List created", "| ListId:", newList.id, "| Name:", newList.name, "| Timestamp:", new Date().toISOString());
 
 		// Step 2: Add the creator as a member of the list using the function
 		// We use invite_member_to_list instead of direct INSERT to avoid RLS recursion
+		console.log("[ListsService] 🔵 Adding creator as member", "| ListId:", newList.id, "| UserId:", user.id);
 		const { error: memberError } = await supabaseClient.rpc(
 			"invite_member_to_list",
 			{
@@ -133,10 +156,11 @@ export class ListsService implements IListService {
 		if (memberError) {
 			// If adding member fails, we should probably delete the list
 			// to maintain consistency, but for now just throw the error
-			console.error("Failed to add creator to list_members:", memberError);
+			console.error("[ListsService] ❌ createList ERROR (member add)", "| Error:", memberError, "| Timestamp:", new Date().toISOString());
 			throw new Error("Failed to add user as list member. Please try again.");
 		}
 
+		console.log("[ListsService] ✅ createList SUCCESS", "| ListId:", newList.id, "| Timestamp:", new Date().toISOString());
 		return newList;
 	}
 

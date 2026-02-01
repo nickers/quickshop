@@ -41,28 +41,39 @@ export interface IListItemsService {
 
 export class ListItemsService implements IListItemsService {
 	async getItemsByListId(listId: UUID): Promise<ListItem[]> {
+		console.log("[ListItemsService] 🔵 getItemsByListId START", "| ListId:", listId, "| Timestamp:", new Date().toISOString());
 		const { data, error } = await supabaseClient
 			.from("list_items")
 			.select("*")
 			.eq("list_id", listId)
 			.order("sort_order", { ascending: true });
 
-		if (error) throw error;
+		if (error) {
+			console.error("[ListItemsService] ❌ getItemsByListId ERROR", "| Error:", error, "| Timestamp:", new Date().toISOString());
+			throw error;
+		}
+		console.log("[ListItemsService] ✅ getItemsByListId SUCCESS", "| Count:", data.length, "| Items:", data.map(i => i.name).join(", "), "| Timestamp:", new Date().toISOString());
 		return data;
 	}
 
 	async createItem(data: CreateListItemDTO): Promise<ListItem> {
+		console.log("[ListItemsService] 🔵 createItem START", "| Data:", data, "| Timestamp:", new Date().toISOString());
 		const { data: newItem, error } = await supabaseClient
 			.from("list_items")
 			.insert(data)
 			.select()
 			.single();
 
-		if (error) throw error;
+		if (error) {
+			console.error("[ListItemsService] ❌ createItem ERROR", "| Error:", error, "| Timestamp:", new Date().toISOString());
+			throw error;
+		}
+		console.log("[ListItemsService] ✅ createItem SUCCESS", "| ItemId:", newItem.id, "| Name:", newItem.name, "| Timestamp:", new Date().toISOString());
 		return newItem;
 	}
 
 	async updateItem(data: UpdateListItemDTO): Promise<ListItem> {
+		console.log("[ListItemsService] 🔵 updateItem START", "| ItemId:", data.id, "| Updates:", data, "| Timestamp:", new Date().toISOString());
 		const { id, ...updates } = data;
 		const { data: updatedItem, error } = await supabaseClient
 			.from("list_items")
@@ -71,17 +82,26 @@ export class ListItemsService implements IListItemsService {
 			.select()
 			.single();
 
-		if (error) throw error;
+		if (error) {
+			console.error("[ListItemsService] ❌ updateItem ERROR", "| Error:", error, "| Timestamp:", new Date().toISOString());
+			throw error;
+		}
+		console.log("[ListItemsService] ✅ updateItem SUCCESS", "| ItemId:", updatedItem.id, "| Timestamp:", new Date().toISOString());
 		return updatedItem;
 	}
 
 	async deleteItem(itemId: UUID): Promise<void> {
+		console.log("[ListItemsService] 🔵 deleteItem START", "| ItemId:", itemId, "| Timestamp:", new Date().toISOString());
 		const { error } = await supabaseClient
 			.from("list_items")
 			.delete()
 			.eq("id", itemId);
 
-		if (error) throw error;
+		if (error) {
+			console.error("[ListItemsService] ❌ deleteItem ERROR", "| Error:", error, "| Timestamp:", new Date().toISOString());
+			throw error;
+		}
+		console.log("[ListItemsService] ✅ deleteItem SUCCESS", "| ItemId:", itemId, "| Timestamp:", new Date().toISOString());
 	}
 
 	async reorderItems(items: { id: UUID; sort_order: number }[]): Promise<void> {
