@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 import type { Database } from "@/db/database.types";
 import { historyQueryKeys } from "@/hooks/useHistory";
 import { listQueryKeys } from "@/hooks/useListsView";
+import { findDuplicateOnList } from "@/lib/conflictUtils";
 import { listItemsService } from "@/services/items.service";
 import { listsService } from "@/services/lists.service";
 import type {
@@ -270,12 +271,7 @@ export function useListDetails(listId: string) {
 
 	// Handlers
 	const handleAddItem = async (name: string) => {
-		// Check for duplicates (case-insensitive) in active items
-		const existingItem = items.find(
-			(item) =>
-				item.name.toLowerCase() === name.toLowerCase() && !item.is_bought,
-		);
-
+		const existingItem = findDuplicateOnList(items, name);
 		if (existingItem) {
 			setConflictState({
 				isOpen: true,

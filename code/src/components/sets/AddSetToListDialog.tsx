@@ -10,6 +10,7 @@ import {
 	DialogTitle,
 } from "@/components/ui/dialog";
 import { listQueryKeys } from "@/hooks/useListsView";
+import { computeSetConflicts } from "@/lib/conflictUtils";
 import { listItemsService } from "@/services/items.service";
 import { listsService } from "@/services/lists.service";
 import { setsService } from "@/services/sets.service";
@@ -67,37 +68,12 @@ export function AddSetToListDialog({
 			]);
 
 			const activeOnList = listItems.filter((i: ListItem) => !i.is_bought);
-			const nameToExisting = new Map(
-				activeOnList.map((i) => [i.name.toLowerCase(), i]),
-			);
-
-			const conflictsOut: SetConflictItem[] = [];
-			const nonConflictingOut: CreateListItemDTO[] = [];
-
-			for (let i = 0; i < setItems.length; i++) {
-				const setItem = setItems[i];
-				const dto: CreateListItemDTO = {
-					list_id: listId,
-					name: setItem.name,
-					quantity: setItem.quantity ?? null,
-					note: setItem.note ?? null,
-					is_bought: false,
-					sort_order: setItem.sort_order ?? i,
-				};
-				const existing = nameToExisting.get(setItem.name.toLowerCase());
-				if (existing) {
-					const suggestedQuantity =
-						[existing.quantity, setItem.quantity].filter(Boolean).join("+") ||
-						"—";
-					conflictsOut.push({
-						existingItem: existing,
-						newItemCandidate: dto,
-						suggestedQuantity,
-					});
-				} else {
-					nonConflictingOut.push(dto);
-				}
-			}
+			const { conflicts: conflictsOut, nonConflicting: nonConflictingOut } =
+				computeSetConflicts({
+					activeListItems: activeOnList,
+					setItems,
+					listId,
+				});
 
 			if (conflictsOut.length === 0) {
 				if (nonConflictingOut.length > 0) {
