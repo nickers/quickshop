@@ -13,10 +13,10 @@
 
 Do `package.json` w `code/` dodać:
 
-| Paczka | Typ | Cel |
-|--------|-----|-----|
-| `@playwright/test` | devDependency | Uruchomienie testów e2e, asercje, konfiguracja |
-| `dotenv` | devDependency | Ładowanie `.env.e2e` / `.env.e2e.local` w `playwright.config.ts` |
+| Paczka             | Typ             | Cel                                                                  |
+|--------------------|-----------------|----------------------------------------------------------------------|
+| `@playwright/test` | devDependency   | Uruchomienie testów e2e, asercje, konfiguracja                       |
+| `dotenv`           | devDependency   | Ładowanie `.env.e2e` / `.env.e2e.local` w `playwright.config.ts`     |
 
 Instalacja:
 
@@ -144,13 +144,13 @@ Jeśli nie chcemy na razie dodawać `data-testid`, pierwszy test może opierać 
 
 ## 7. Podsumowanie
 
-| Element | Decyzja |
-|---------|---------|
-| Paczki | `@playwright/test`, `dotenv` |
-| Przeglądarka | Chromium |
-| Env | `.env.e2e.local` / `.env.e2e` ładowane w `playwright.config.ts` przez `dotenv` |
-| Pierwszy test | Wejście na aplikację → ekran logowania widoczny, bez wykonywania logowania |
-| Selektory | `data-testid` w nowych elementach; w pierwszym teście role/tekst lub testid po dodaniu w auth |
-| Struktura | `e2e/` + `e2e/page-objects/` |
+| Element        | Decyzja                                                                                       |
+|----------------|-----------------------------------------------------------------------------------------------|
+| Paczki         | `@playwright/test`, `dotenv`                                                                  |
+| Przeglądarka   | Chromium                                                                                      |
+| Env            | `.env.e2e.local` / `.env.e2e` ładowane w `playwright.config.ts` przez `dotenv`                |
+| Pierwszy test  | Wejście na aplikację → ekran logowania widoczny, bez wykonywania logowania                    |
+| Selektory      | `data-testid` w nowych elementach; w pierwszym teście role/tekst lub testid po dodaniu w auth |
+| Struktura      | `e2e/` + `e2e/page-objects/`                                                                  |
 
 Po wdrożeniu tego planu pierwszy test weryfikuje uruchomienie aplikacji i wyświetlenie ekranu logowania; kolejne testy (w tym logowanie) można dodawać zgodnie z powyższymi krokami.
