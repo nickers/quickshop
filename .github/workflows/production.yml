@@ -41,47 +41,46 @@ jobs:
           path: ${{ env.WORKING_DIR }}/coverage/coverage-summary.json
           retention-days: 7
 
-  # E2E tests temporarily disabled
   # TestsE2E: set E2E_USER1_PASSWORD and E2E_USER2_PASSWORD (secrets). Emails/Vite vars from code/.env.e2e.
   # Optional: VITE_SUPABASE_*, BASE_URL. If BASE_URL unset, Playwright uses http://localhost:3000.
-  # e2e:
-  #   name: E2E tests
-  #   runs-on: ubuntu-latest
-  #   needs: [lint-and-test]
-  #   environment: TestsE2E
-  #   env:
-  #     CI: true
-  #     BASE_URL: ${{ vars.BASE_URL }}
-  #     VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
-  #     VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.VITE_SUPABASE_PUBLISHABLE_KEY }}
-  #     # Environment secrets are not auto-injected; reference them so they reach the test process.
-  #     E2E_USER1_PASSWORD: ${{ secrets.E2E_USER1_PASSWORD }}
-  #     E2E_USER2_PASSWORD: ${{ secrets.E2E_USER2_PASSWORD }}
-  #   steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@v4
+  e2e:
+    name: E2E tests
+    runs-on: ubuntu-latest
+    needs: [lint-and-test]
+    environment: TestsE2E
+    env:
+      CI: true
+      BASE_URL: ${{ vars.BASE_URL }}
+      VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
+      VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.VITE_SUPABASE_PUBLISHABLE_KEY }}
+      # Environment secrets are not auto-injected; reference them so they reach the test process.
+      E2E_USER1_PASSWORD: ${{ secrets.E2E_USER1_PASSWORD }}
+      E2E_USER2_PASSWORD: ${{ secrets.E2E_USER2_PASSWORD }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
-  #     - name: Setup Node and npm
-  #       uses: ./.github/actions/setup-node-npm
-  #       with:
-  #         node-version: ${{ env.NODE_VERSION }}
-  #         working-directory: ${{ env.WORKING_DIR }}
+      - name: Setup Node and npm
+        uses: ./.github/actions/setup-node-npm
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          working-directory: ${{ env.WORKING_DIR }}
 
-  #     - name: Install Playwright browsers (Chromium)
-  #       run: npx playwright install chromium
-  #       working-directory: ${{ env.WORKING_DIR }}
+      - name: Install Playwright browsers (Chromium)
+        run: npx playwright install chromium
+        working-directory: ${{ env.WORKING_DIR }}
 
-  #     - name: Run E2E tests
-  #       run: npm run test:e2e
-  #       working-directory: ${{ env.WORKING_DIR }}
+      - name: Run E2E tests
+        run: npm run test:e2e
+        working-directory: ${{ env.WORKING_DIR }}
 
-  #     - name: Upload Playwright report on failure
-  #       uses: actions/upload-artifact@v4
-  #       if: failure()
-  #       with:
-  #         name: playwright-report
-  #         path: ${{ env.WORKING_DIR }}/playwright-report
-  #         retention-days: 7
+      - name: Upload Playwright report on failure
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: ${{ env.WORKING_DIR }}/playwright-report
+          retention-days: 7
 
   build:
     name: Production build
@@ -115,7 +114,7 @@ jobs:
   deploy:
     name: Deploy to Cloudflare Pages
     runs-on: ubuntu-latest
-    needs: [build] # e2e dependency removed (tests disabled)
+    needs: [build, e2e]
     environment: Production
     permissions:
       contents: read
