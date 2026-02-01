@@ -6,6 +6,7 @@ dist-ssr
 *.local
 count.txt
 .env
+# .env.e2e is committed (no secrets; overrides via .env.e2e.local or env vars)
 .nitro
 .tanstack
 .wrangler
