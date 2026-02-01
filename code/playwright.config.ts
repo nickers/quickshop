@@ -4,7 +4,7 @@ import dotenv from "dotenv";
 
 // .env.e2e.local first (passwords, local overrides). Then .env.e2e with override: false
 // so committed file supplies emails/Vite vars but does not overwrite secrets (CI) or .local (local).
-dotenv.config({ path: path.resolve(process.cwd(), ".env.e2e.local") });
+dotenv.config({ path: path.resolve(process.cwd(), ".env.e2e.local"), override: false });
 dotenv.config({ path: path.resolve(process.cwd(), ".env.e2e"), override: false });
 
 export default defineConfig({
