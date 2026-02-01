@@ -22,7 +22,11 @@ interface ActiveItemsListProps {
 	onDelete: (id: string) => void;
 	onUpdate?: (
 		id: string,
-		data: { quantity?: string | null; note?: string | null },
+		data: {
+			name?: string;
+			quantity?: string | null;
+			note?: string | null;
+		},
 	) => void;
 	onReorder?: (orderedItems: ListItem[]) => void;
 	pendingIds?: Set<string>;
@@ -40,7 +44,11 @@ function SortableRow({
 	onDelete: (id: string) => void;
 	onUpdate?: (
 		id: string,
-		data: { quantity?: string | null; note?: string | null },
+		data: {
+			name?: string;
+			quantity?: string | null;
+			note?: string | null;
+		},
 	) => void;
 	pendingIds: Set<string>;
 }) {

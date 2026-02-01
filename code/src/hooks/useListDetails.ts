@@ -326,7 +326,11 @@ export function useListDetails(listId: string) {
 	const updateItemFields = useCallback(
 		(
 			itemId: string,
-			data: { quantity?: string | null; note?: string | null },
+			data: {
+				name?: string;
+				quantity?: string | null;
+				note?: string | null;
+			},
 		) => {
 			updateItemMutation.mutate({
 				type: "update",

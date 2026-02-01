@@ -8,7 +8,11 @@ interface CompletedItemsSectionProps {
 	onDelete: (id: string) => void;
 	onUpdate?: (
 		id: string,
-		data: { quantity?: string | null; note?: string | null },
+		data: {
+			name?: string;
+			quantity?: string | null;
+			note?: string | null;
+		},
 	) => void;
 	pendingIds?: Set<string>;
 }

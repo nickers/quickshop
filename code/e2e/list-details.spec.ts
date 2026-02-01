@@ -16,10 +16,40 @@ test.describe("List details – items", () => {
 		await expect(page).toHaveURL(/\/lists\/[a-f0-9-]+/);
 	});
 
+	// ITEM-01 missing steps (test plan: CRUD + "Stan UI zgodny z oczekiwaniami"):
+	// - Assert new product appears in active items section (not in "Kupione")
+	// - Assert add-item input is cleared after submit
+	// - Explicit Read: verify product details (name, optional quantity/note) are displayed
+	// - Explicit Read: verify product is in active list (data-testid active-items-list)
+	// - Update: verify quantity/note unchanged after name-only edit (or test edit quantity/note)
+	// - Update: assert edited item remains in active section
+	// - Delete: assert list item count decreased (optional)
+	// - Delete: assert no sync error / error toast after delete
+	// - Single full CRUD flow: Create -> Read -> Update -> Read -> Delete -> Read in one test
+	// - UI state: assert no console errors during CRUD
+	// - UI state: assert sync indicator / StickyInputBar still visible and usable after each action
+
 	test("ITEM-01: add product (Create)", async ({ page }) => {
 		const listPage = new ListDetailsPage(page);
 		await listPage.addItem("Mleko");
 		await listPage.expectItemVisible("Mleko");
+	});
+
+	test("ITEM-01: edit product name (Update)", async ({ page }) => {
+		const listPage = new ListDetailsPage(page);
+		await listPage.addItem("Chleb");
+		await listPage.expectItemVisible("Chleb");
+		await listPage.editItemName("Chleb", "Chleb pełnoziarnisty");
+		await listPage.expectItemVisible("Chleb pełnoziarnisty");
+		await listPage.expectItemNotVisible("Chleb");
+	});
+
+	test("ITEM-01: delete product (Delete)", async ({ page }) => {
+		const listPage = new ListDetailsPage(page);
+		await listPage.addItem("Do usunięcia");
+		await listPage.expectItemVisible("Do usunięcia");
+		await listPage.deleteItem("Do usunięcia");
+		await listPage.expectItemNotVisible("Do usunięcia");
 	});
 
 	test("ITEM-03: conflict dialog when adding duplicate product name", async ({

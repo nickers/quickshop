@@ -129,21 +129,23 @@ function ListDetailsPage() {
 
 	return (
 		<div
-			className="flex flex-col min-h-screen pb-20 relative bg-background"
+			className="flex flex-col h-screen-safe relative bg-background touch-manipulation"
 			data-testid="list-details-page"
 		>
-			<ListDetailsHeader
-				list={list}
-				onShare={() => setShareModalOpen(true)}
-				onArchive={() => setArchiveConfirmOpen(true)}
-				onCreateSet={() => setCreateSetPlaceholderOpen(true)}
-				onRename={handleRenameOpen}
-				syncStatus={syncStatus}
-				syncError={syncError}
-				onSyncRetry={onSyncRetry}
-			/>
+			<div className="flex-shrink-0">
+				<ListDetailsHeader
+					list={list}
+					onShare={() => setShareModalOpen(true)}
+					onArchive={() => setArchiveConfirmOpen(true)}
+					onCreateSet={() => setCreateSetPlaceholderOpen(true)}
+					onRename={handleRenameOpen}
+					syncStatus={syncStatus}
+					syncError={syncError}
+					onSyncRetry={onSyncRetry}
+				/>
+			</div>
 
-			<div className="flex-1 overflow-y-auto">
+			<div className="flex-1 overflow-y-auto min-h-0 overscroll-none scroll-smooth-ios">
 				<ActiveItemsList
 					items={activeItems}
 					onToggle={toggleItem}
@@ -160,9 +162,14 @@ function ListDetailsPage() {
 					onUpdate={updateItemFields}
 					pendingIds={pendingIds}
 				/>
+
+				{/* Spacer dla sticky input bar - zapobiega zakrywaniu ostatnich itemów */}
+				<div className="h-24" aria-hidden="true" />
 			</div>
 
-			<StickyInputBar onAddItem={addItem} isSubmitting={isSubmitting} />
+			<div className="flex-shrink-0">
+				<StickyInputBar onAddItem={addItem} isSubmitting={isSubmitting} />
+			</div>
 
 			<ItemConflictDialog
 				isOpen={conflictState.isOpen}

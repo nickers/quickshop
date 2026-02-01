@@ -139,3 +139,35 @@ code {
 .pb-safe-area-bottom {
   padding-bottom: env(safe-area-inset-bottom, 1rem);
 }
+
+/* Mobile Viewport Height Utilities */
+@layer utilities {
+  /* Full height z fallbackiem dla starszych przeglądarek */
+  .h-screen-safe {
+    height: 100vh; /* fallback */
+    height: 100dvh; /* dynamic viewport height */
+  }
+  
+  /* Overscroll behavior dla mobile */
+  .overscroll-none {
+    overscroll-behavior: none;
+  }
+  
+  /* Zapobieganie zoom na iOS przy double-tap */
+  .touch-manipulation {
+    touch-action: manipulation;
+  }
+  
+  /* Smooth scrolling na iOS */
+  .scroll-smooth-ios {
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* Dodatkowe wsparcie dla iOS Safari quirks */
+@supports (-webkit-touch-callout: none) {
+  .h-screen-safe {
+    /* iOS Safari - użyj najmniejszej wysokości viewportu */
+    height: 100svh;
+  }
+}

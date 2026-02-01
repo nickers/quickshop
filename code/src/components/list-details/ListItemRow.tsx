@@ -39,7 +39,11 @@ interface ListItemRowProps {
 	onDelete: (id: string) => void;
 	onUpdate?: (
 		id: string,
-		data: { quantity?: string | null; note?: string | null },
+		data: {
+			name?: string;
+			quantity?: string | null;
+			note?: string | null;
+		},
 	) => void;
 	/** Elementy niesynchronizowane – obniżona opacity (optimistic UI) */
 	isPending?: boolean;
@@ -63,9 +67,11 @@ export function ListItemRow({
 	isDragging = false,
 }: ListItemRowProps) {
 	const isTouch = useIsTouchDevice();
+	const editNameId = useId();
 	const editQuantityId = useId();
 	const editNoteId = useId();
 	const [editOpen, setEditOpen] = useState(false);
+	const [editName, setEditName] = useState(item.name);
 	const [editQuantity, setEditQuantity] = useState(item.quantity ?? "");
 	const [editNote, setEditNote] = useState(item.note ?? "");
 	const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -75,6 +81,7 @@ export function ListItemRow({
 	const swipeOffsetRef = useRef(0);
 
 	const openEdit = () => {
+		setEditName(item.name);
 		setEditQuantity(item.quantity ?? "");
 		setEditNote(item.note ?? "");
 		setEditOpen(true);
@@ -84,7 +91,10 @@ export function ListItemRow({
 
 	const submitEdit = () => {
 		if (!onUpdate) return;
+		const trimmedName = editName.trim();
+		if (!trimmedName) return;
 		onUpdate(item.id, {
+			name: trimmedName,
 			quantity: editQuantity.trim() || null,
 			note: editNote.trim() || null,
 		});
@@ -194,13 +204,14 @@ export function ListItemRow({
 						type="button"
 						className="p-2 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
 						aria-label="Otwórz menu pozycji"
+						data-testid="list-item-row-menu"
 					>
 						<MoreVertical className="h-4 w-4" />
 					</button>
 				</DropdownMenuTrigger>
 				<DropdownMenuContent align="end">
 					{onUpdate && (
-						<DropdownMenuItem onSelect={openEdit}>
+						<DropdownMenuItem onSelect={openEdit} data-testid="list-item-menu-edit">
 							<Pencil className="mr-2 h-4 w-4" />
 							Edycja
 						</DropdownMenuItem>
@@ -208,6 +219,7 @@ export function ListItemRow({
 					<DropdownMenuItem
 						className="text-destructive focus:text-destructive"
 						onSelect={() => onDelete(item.id)}
+						data-testid="list-item-menu-delete"
 					>
 						<Trash2 className="mr-2 h-4 w-4" />
 						Usuń
@@ -236,7 +248,8 @@ export function ListItemRow({
 							isDragging && "opacity-80 shadow-md z-10",
 						)}
 						style={{ transform: `translateX(-${swipeOffset}px)` }}
-						data-testid={`list-item-row-${item.id}`}
+						data-testid="list-item-row"
+						data-item-id={item.id}
 					>
 						{rowContent}
 					</div>
@@ -244,12 +257,23 @@ export function ListItemRow({
 
 				{onUpdate && (
 					<Dialog open={editOpen} onOpenChange={setEditOpen}>
-						<DialogContent className="sm:max-w-[425px]">
+						<DialogContent className="sm:max-w-[425px]" data-testid="list-item-edit-dialog">
 							<DialogHeader>
-								<DialogTitle>Edytuj ilość i notatkę</DialogTitle>
-								<DialogDescription>{item.name}</DialogDescription>
+								<DialogTitle>Edytuj produkt</DialogTitle>
+								<DialogDescription>Zmień nazwę, ilość lub notatkę.</DialogDescription>
 							</DialogHeader>
 							<div className="grid gap-4 py-4">
+								<div className="grid gap-2">
+									<Label htmlFor={editNameId}>Nazwa produktu</Label>
+									<Input
+										id={editNameId}
+										value={editName}
+										onChange={(e) => setEditName(e.target.value)}
+										placeholder="np. Mleko"
+										maxLength={100}
+										data-testid="list-item-edit-name"
+									/>
+								</div>
 								<div className="grid gap-2">
 									<Label htmlFor={editQuantityId}>Ilość (opcjonalnie)</Label>
 									<Input
@@ -258,6 +282,7 @@ export function ListItemRow({
 										onChange={(e) => setEditQuantity(e.target.value)}
 										placeholder="np. 2 szt"
 										maxLength={50}
+										data-testid="list-item-edit-quantity"
 									/>
 								</div>
 								<div className="grid gap-2">
@@ -268,6 +293,7 @@ export function ListItemRow({
 										onChange={(e) => setEditNote(e.target.value)}
 										placeholder="np. bez laktozy"
 										maxLength={100}
+										data-testid="list-item-edit-note"
 									/>
 								</div>
 							</div>
@@ -275,7 +301,9 @@ export function ListItemRow({
 								<Button variant="outline" onClick={closeEdit}>
 									Anuluj
 								</Button>
-								<Button onClick={submitEdit}>Zapisz</Button>
+								<Button onClick={submitEdit} data-testid="list-item-edit-submit">
+									Zapisz
+								</Button>
 							</DialogFooter>
 						</DialogContent>
 					</Dialog>
@@ -293,19 +321,31 @@ export function ListItemRow({
 					isPending && "opacity-70",
 					isDragging && "opacity-80 shadow-md z-10",
 				)}
-				data-testid={`list-item-row-${item.id}`}
+				data-testid="list-item-row"
+				data-item-id={item.id}
 			>
 				{rowContent}
 			</div>
 
 			{onUpdate && (
 				<Dialog open={editOpen} onOpenChange={setEditOpen}>
-					<DialogContent className="sm:max-w-[425px]">
+					<DialogContent className="sm:max-w-[425px]" data-testid="list-item-edit-dialog">
 						<DialogHeader>
-							<DialogTitle>Edytuj ilość i notatkę</DialogTitle>
-							<DialogDescription>{item.name}</DialogDescription>
+							<DialogTitle>Edytuj produkt</DialogTitle>
+							<DialogDescription>Zmień nazwę, ilość lub notatkę.</DialogDescription>
 						</DialogHeader>
 						<div className="grid gap-4 py-4">
+							<div className="grid gap-2">
+								<Label htmlFor={editNameId}>Nazwa produktu</Label>
+								<Input
+									id={editNameId}
+									value={editName}
+									onChange={(e) => setEditName(e.target.value)}
+									placeholder="np. Mleko"
+									maxLength={100}
+									data-testid="list-item-edit-name"
+								/>
+							</div>
 							<div className="grid gap-2">
 								<Label htmlFor={editQuantityId}>Ilość (opcjonalnie)</Label>
 								<Input
@@ -314,6 +354,7 @@ export function ListItemRow({
 									onChange={(e) => setEditQuantity(e.target.value)}
 									placeholder="np. 2 szt"
 									maxLength={50}
+									data-testid="list-item-edit-quantity"
 								/>
 							</div>
 							<div className="grid gap-2">
@@ -324,6 +365,7 @@ export function ListItemRow({
 									onChange={(e) => setEditNote(e.target.value)}
 									placeholder="np. bez laktozy"
 									maxLength={100}
+									data-testid="list-item-edit-note"
 								/>
 							</div>
 						</div>
@@ -331,7 +373,9 @@ export function ListItemRow({
 							<Button variant="outline" onClick={closeEdit}>
 								Anuluj
 							</Button>
-							<Button onClick={submitEdit}>Zapisz</Button>
+							<Button onClick={submitEdit} data-testid="list-item-edit-submit">
+								Zapisz
+							</Button>
 						</DialogFooter>
 					</DialogContent>
 				</Dialog>
