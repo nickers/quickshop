@@ -35,13 +35,6 @@ export function useListsView() {
 		fetchUser();
 	}, []);
 
-	// Log lists state changes for debugging
-	useEffect(() => {
-		if (listsQuery.data) {
-			console.log("[useListsView] 📊 Lists state changed", "| Count:", listsQuery.data.length, "| Lists:", listsQuery.data.map(l => l.name).join(", "), "| Timestamp:", new Date().toISOString());
-		}
-	}, [listsQuery.data]);
-
 	// Query: Fetch all lists with item counts
 	const listsQuery = useQuery({
 		queryKey: listQueryKeys.all,
@@ -82,6 +75,13 @@ export function useListsView() {
 		staleTime: 30000, // 30 seconds
 		enabled: !!currentUserId, // Only run query when we have a user ID
 	});
+
+	// Log lists state changes for debugging
+	useEffect(() => {
+		if (listsQuery.data) {
+			console.log("[useListsView] 📊 Lists state changed", "| Count:", listsQuery.data.length, "| Lists:", listsQuery.data.map(l => l.name).join(", "), "| Timestamp:", new Date().toISOString());
+		}
+	}, [listsQuery.data]);
 
 	// Mutation: Create new list
 	const createListMutation = useMutation({

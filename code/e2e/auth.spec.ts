@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures";
 import { AuthPage } from "./page-objects/AuthPage";
 
 test.describe("Auth screen", () => {

@@ -2,7 +2,7 @@
  * LIST-01: Create list (smoke).
  * Runs with authenticated storage state (E2E_USER1).
  */
-import { test } from "@playwright/test";
+import { test } from "./fixtures";
 import { formatTimestamp } from "./helpers/dateFormat";
 import { ListsPage } from "./page-objects/ListsPage";
 

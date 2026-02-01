@@ -2,7 +2,7 @@
  * ITEM-01, ITEM-03, RWD-01: Add product, conflict dialog, StickyInputBar on mobile.
  * Runs with authenticated storage state (E2E_USER1).
  */
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures";
 import { formatTimestamp } from "./helpers/dateFormat";
 import { clickWhenReady } from "./helpers/interactions";
 import { ListDetailsPage } from "./page-objects/ListDetailsPage";

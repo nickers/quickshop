@@ -2,7 +2,7 @@
  * Setup project: log in as E2E_USER1 and save storage state for authenticated tests.
  * Credentials from .env.e2e.local (or .env.e2e).
  */
-import { expect, test as setup } from "@playwright/test";
+import { expect, test as setup } from "./fixtures";
 import fs from "node:fs";
 import path from "node:path";
 import { clickWhenReady } from "./helpers/interactions";

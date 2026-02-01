@@ -12,6 +12,7 @@
     "test:e2e": "playwright test",
     "test:e2e:headed": "playwright test --headed",
     "test:e2e:ui": "playwright test --ui",
+    "test:e2e:debug": "playwright test --headed --max-failures=1",
     "format": "biome format",
     "lint": "biome lint",
     "check": "biome check"

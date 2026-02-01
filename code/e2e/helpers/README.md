@@ -2,6 +2,54 @@
 
 Reusable helper functions for Playwright E2E tests.
 
+## Console Logging
+
+### `setupConsoleLogger(page, options?)`
+
+**Automatic browser console log capture for debugging E2E tests.**
+
+Captures browser console messages and displays them in Node.js terminal with color coding and emojis.
+
+**Usage:**
+```typescript
+import { setupConsoleLogger } from "../helpers/console-logger";
+
+// In test or beforeEach
+setupConsoleLogger(page);
+
+// With custom options
+setupConsoleLogger(page, {
+  categories: ["[useListDetails]", "[ListsService]"],
+  captureAll: false,  // Only capture filtered categories
+  verbose: false,     // Skip debug messages
+});
+```
+
+**Note:** All tests automatically have console logging enabled via `fixtures.ts`. You only need to call this manually if you want to override the default settings.
+
+**See:** `HOW_TO_VIEW_DEBUG_LOGS.md` for complete guide.
+
+---
+
+### `collectConsoleLogs(page, categories?)`
+
+Collects console messages into an array for assertions.
+
+**Usage:**
+```typescript
+import { collectConsoleLogs } from "../helpers/console-logger";
+
+test("should log item creation", async ({ page }) => {
+  const logs = collectConsoleLogs(page, ["[useListDetails]"]);
+  
+  await listPage.addItem("Milk");
+  
+  expect(logs.some(log => log.includes("CREATE onMutate"))).toBeTruthy();
+});
+```
+
+---
+
 ## Interaction Helpers
 
 ### `clickWhenReady(locator, options?)`
@@ -88,7 +136,16 @@ async expectListVisible(listName: string) {
 
 ## Best Practices
 
-1. **Always use helpers instead of manual patterns:**
+1. **Use global fixtures for automatic logging:**
+   ```typescript
+   // ✅ GOOD - Gets automatic console logging
+   import { test } from "./fixtures";
+   
+   // ❌ BAD - No console logging
+   import { test } from "@playwright/test";
+   ```
+
+2. **Always use helpers instead of manual patterns:**
    ```typescript
    // ✅ GOOD
    await clickWhenReady(button);
@@ -115,7 +172,26 @@ async expectListVisible(listName: string) {
 
 When tests fail, the helpers provide additional debugging capabilities:
 
-- `debugElement()` logs element state
-- Screenshots are automatically captured on failure (configured in `playwright.config.ts`)
-- Trace files are retained for failed tests
-- Console errors are captured in test output
+- **Console logs** - Automatically captured from browser and displayed in terminal
+- **`debugElement()`** - Logs element state
+- **Screenshots** - Automatically captured on failure (configured in `playwright.config.ts`)
+- **Trace files** - Retained for failed tests
+- **Page errors** - Captured and logged automatically
+
+### Stop on First Failure
+
+Run tests in debug mode to stop immediately when a test fails:
+
+```bash
+npm run test:e2e:debug
+```
+
+This is ideal for debugging because:
+- Tests stop after first failure
+- Browser stays open
+- Console logs are visible
+- You can inspect browser state
+
+**See also:**
+- `HOW_TO_VIEW_DEBUG_LOGS.md` - Complete debugging guide
+- `DEBUG_LOGS_GUIDE.md` - Log structure and patterns

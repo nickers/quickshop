@@ -1,58 +1,116 @@
 # How to View Debug Logs in E2E Tests
 
-## Method 1: Browser Console (Headed Mode)
+## ✨ Automatic Console Logging (Recommended)
 
-1. Run tests in headed mode:
-   ```bash
-   npx playwright test --headed
-   ```
+**All E2E tests now automatically capture browser console logs!**
 
-2. Open Browser DevTools:
-   - When the browser opens, press F12 or right-click → Inspect
-   - Go to the Console tab
+Console logs from the browser are captured and displayed in your terminal during test execution. No additional setup needed.
 
-3. Filter logs:
-   ```
-   [useListDetails]
-   [useListsView]
-   [ListItemsService]
-   [ListsService]
-   [MutationCache]
-   [QueryClient]
-   ```
+### Running Tests with Console Logs
 
-4. Watch the logs stream as the test executes
+```bash
+# Run all tests (logs appear in terminal)
+npm run test:e2e
 
-## Method 2: Playwright Console Listener (Headless Mode)
+# Run with browser visible
+npm run test:e2e:headed
 
-Add this to your test file:
+# Stop on first failure (recommended for debugging)
+npm run test:e2e:debug
+
+# Run in UI mode
+npm run test:e2e:ui
+```
+
+### What Gets Logged
+
+By default, these log categories are captured:
+- `[useListDetails]` - List details operations
+- `[useListsView]` - Lists view operations
+- `[ListItemsService]` - Database operations for items
+- `[ListsService]` - Database operations for lists
+- `[MutationCache]` - TanStack Query mutation lifecycle
+- `[QueryClient]` - TanStack Query client operations
+
+## Method 1: Default Automatic Logging
+
+Simply run your tests - logs appear automatically:
+
+```bash
+npm run test:e2e
+```
+
+Console output will show:
+```
+📝 [LOG] [useListsView] 🔵 listsQuery START | Timestamp: 2026-02-01T...
+📝 [LOG] [ListsService] 🔵 getAllLists START | Timestamp: 2026-02-01T...
+📝 [LOG] [ListsService] ✅ getAllLists SUCCESS | Count: 3 | Lists: ...
+```
+
+## Method 2: Debug Mode (Stop on First Failure)
+
+**NEW:** Run tests and stop immediately when one fails:
+
+```bash
+npm run test:e2e:debug
+```
+
+This is ideal for debugging because:
+- ✅ Tests stop immediately after first failure (`--max-failures=1`)
+- ✅ Browser stays open (headed mode)
+- ✅ Console logs are visible in terminal
+- ✅ You can inspect the browser state
+
+You can also manually specify a different failure limit:
+
+```bash
+# Stop after 3 failures
+npx playwright test --max-failures=3
+
+# Stop on first failure
+npx playwright test --max-failures=1
+```
+
+## Method 3: Custom Console Logging in Tests
+
+If you need to capture logs for assertions or custom analysis:
 
 ```typescript
-test.beforeEach(async ({ page }) => {
-  // Capture browser console logs
-  page.on('console', msg => {
-    const text = msg.text();
-    // Only log our debug messages
-    if (text.includes('[useListDetails]') || 
-        text.includes('[useListsView]') || 
-        text.includes('[ListItemsService]') ||
-        text.includes('[ListsService]') ||
-        text.includes('[MutationCache]') ||
-        text.includes('[QueryClient]')) {
-      console.log('BROWSER:', text);
-    }
-  });
+import { test } from "./fixtures";
+import { collectConsoleLogs } from "./helpers/console-logger";
+
+test("should log item creation", async ({ page }) => {
+  const logs = collectConsoleLogs(page, ["[useListDetails]"]);
+  
+  await listPage.addItem("Milk");
+  
+  // Assert on captured logs
+  expect(logs.some(log => log.includes("CREATE onMutate"))).toBeTruthy();
+  expect(logs.some(log => log.includes("CREATE onSuccess"))).toBeTruthy();
 });
 ```
 
-Then run:
-```bash
-npx playwright test
+## Method 4: Verbose Logging (Capture Everything)
+
+For detailed debugging, capture ALL console messages:
+
+```typescript
+import { test } from "./fixtures";
+import { setupConsoleLogger } from "./helpers/console-logger";
+
+test("debug everything", async ({ page }) => {
+  // Override default logger to capture all messages
+  setupConsoleLogger(page, {
+    captureAll: true,  // Capture all console messages
+    verbose: true,     // Include debug messages
+  });
+  
+  await listPage.goto();
+  // All console.log, console.error, console.warn will be captured
+});
 ```
 
-The browser console logs will appear in your terminal.
-
-## Method 3: Playwright Trace Viewer
+## Method 5: Playwright Trace Viewer
 
 1. Run tests with trace:
    ```bash
@@ -66,95 +124,11 @@ The browser console logs will appear in your terminal.
 
 3. Click on "Console" tab to see all console logs
 
-## Method 4: Using Page.evaluate() for Custom Logging
-
-Add this to your test:
-
-```typescript
-test('debug specific action', async ({ page }) => {
-  const listsPage = new ListsPage(page);
-  await listsPage.goto();
-  
-  // Enable verbose logging
-  await page.evaluate(() => {
-    (window as any).__DEBUG_MODE__ = true;
-  });
-  
-  await listsPage.clickNewList();
-  
-  // Wait a bit to see logs accumulate
-  await page.waitForTimeout(1000);
-  
-  // Get all console messages
-  const logs = await page.evaluate(() => {
-    return (window as any).__CONSOLE_LOGS__ || [];
-  });
-  
-  console.log('Captured logs:', logs);
-});
-```
-
-## Recommended: Playwright Test with Console Output
-
-Create a helper file `e2e/helpers/console-logger.ts`:
-
-```typescript
-import type { Page } from '@playwright/test';
-
-export function setupConsoleLogger(page: Page, filter?: string[]) {
-  page.on('console', msg => {
-    const text = msg.text();
-    
-    // Filter logs if specified
-    if (filter) {
-      const shouldLog = filter.some(f => text.includes(f));
-      if (!shouldLog) return;
-    }
-    
-    // Color code by type
-    const type = msg.type();
-    const prefix = type === 'error' ? '❌' : 
-                   type === 'warning' ? '⚠️' : 
-                   type === 'info' ? 'ℹ️' : '📝';
-    
-    console.log(`${prefix} ${text}`);
-  });
-}
-```
-
-Then use it in your tests:
-
-```typescript
-import { setupConsoleLogger } from './helpers/console-logger';
-
-test.beforeEach(async ({ page }) => {
-  setupConsoleLogger(page, [
-    '[useListDetails]',
-    '[useListsView]',
-    '[ListItemsService]',
-    '[ListsService]',
-    '[MutationCache]',
-    '[QueryClient]',
-  ]);
-});
-
-test('LIST-01: create new list', async ({ page }) => {
-  const listsPage = new ListsPage(page);
-  await listsPage.goto();
-  await listsPage.clickNewList();
-  const uniqueListName = `E2E Test ${formatTimestamp()}`;
-  await listsPage.createList(uniqueListName);
-  await listsPage.expectListVisible(uniqueListName);
-  
-  // Console logs will be automatically captured and displayed
-});
-```
-
 ## Debugging Timing Issues
 
 When you see a test fail (e.g., list not visible):
 
-1. **Check the log sequence** - Did all steps complete?
+1. **Check the log sequence** in your terminal:
    ```
    [ListsService] 🔵 createList START
    [ListsService] ✅ createList SUCCESS
@@ -170,62 +144,131 @@ When you see a test fail (e.g., list not visible):
    | Timestamp: 2026-02-01T21:45:30.123Z  <- Create
    | Timestamp: 2026-02-01T21:45:30.125Z  <- Query (2ms later!)
    ```
-   
-   If query happens too soon after create, database might not have committed yet.
 
 3. **Look for missing logs** - Which step didn't happen?
-   - Missing invalidation? Cache won't refresh
-   - Missing query refetch? UI won't update
-   - Missing mutation success? Optimistic update might revert
 
 4. **Check error logs** - Any red flags?
    ```
-   [ListsService] ❌ getAllLists ERROR | Error: {...}
-   [useListsView] ⏪ Rollback to previous lists
+   ❌ [ERROR] [ListsService] getAllLists ERROR | Error: {...}
    ```
+
+## Log Emojis Legend
+
+- 🔵 **START** - Operation starting
+- ✅ **SUCCESS** - Operation completed
+- ❌ **ERROR** - Operation failed
+- ⏸️ **PAUSE** - Query cancellation
+- ✨ **OPTIMISTIC** - Optimistic update applied
+- 🔄 **INVALIDATE** - Query invalidation
+- 🚀 **MUTATION** - Mutation executing
+- 📊 **STATE** - State change detected
+
+## Console Message Color Codes
+
+Terminal output is color-coded:
+- 🔴 **Red** - Errors
+- 🟡 **Yellow** - Warnings
+- 🔵 **Cyan** - Info messages
+- ⚪ **White** - Regular logs
+
+## Configuration
+
+### Stop on First Failure
+
+The test suite is configured to stop on first failure when using:
+```bash
+npm run test:e2e:debug
+```
+
+Or manually with:
+```bash
+npx playwright test --max-failures=1
+```
+
+### Customize Logged Categories
+
+Edit `e2e/fixtures.ts` to change what gets logged:
+
+```typescript
+setupConsoleLogger(page, {
+  categories: ["[useListDetails]", "[CustomCategory]"],
+  captureAll: false,
+  verbose: false,
+});
+```
 
 ## Quick Debug Commands
 
 ```bash
-# Run single test with trace and headed
-npx playwright test lists.spec.ts --headed --trace on
+# Run all tests with console logs
+npm run test:e2e
 
-# Run with debug mode (pause on failure)
-npx playwright test lists.spec.ts --debug
+# Debug mode: stop on first failure, headed, with logs
+npm run test:e2e:debug
 
-# Run and show report
-npx playwright test && npx playwright show-report
+# Run specific test file
+npx playwright test lists.spec.ts
 
 # Run specific test line
 npx playwright test lists.spec.ts:10
+
+# Run with UI mode (interactive)
+npm run test:e2e:ui
+
+# Show last test report
+npx playwright show-report
 ```
 
 ## Example: Complete Debug Session
 
 ```bash
-# 1. Run test in headed mode to see browser
-npx playwright test lists.spec.ts --headed
+# 1. Run tests in debug mode (stops on first failure)
+npm run test:e2e:debug
 
-# 2. When test runs, open DevTools (F12)
-# 3. Go to Console tab
-# 4. Type filter: [Lists
-# 5. Watch the log sequence
-# 6. If test fails, check what step is missing
-# 7. Compare timestamps to identify race conditions
+# 2. Terminal shows console logs from browser in real-time
+# 3. Browser stays open on failure - inspect state
+# 4. Check terminal for log sequence
+# 5. Identify missing step or timing issue
 
 # If need more detail:
-npx playwright test lists.spec.ts --trace on
+npx playwright test --trace on
 npx playwright show-trace test-results/.../trace.zip
-# Click "Console" tab to review all logs
 ```
 
-## Current Test Status
+## Troubleshooting
 
-Note: The auth setup is currently failing. To use the logs:
+### Logs not appearing?
 
-1. Fix the auth issue first (separate from logging)
-2. Once auth works, run tests as normal
-3. Logs will automatically appear in console
-4. Use the filtering techniques above to focus on specific issues
+1. Check if you're using the correct import:
+   ```typescript
+   import { test } from "./fixtures";  // ✅ Correct
+   import { test } from "@playwright/test";  // ❌ Won't have logging
+   ```
 
-The logging infrastructure is now in place and will work once the tests can authenticate successfully.
+2. Make sure console logs are being generated in the app (check browser DevTools when running headed mode)
+
+3. Verify log categories match what's in your code
+
+### Too many logs?
+
+Reduce noise by filtering categories:
+```typescript
+setupConsoleLogger(page, {
+  categories: ["[useListDetails]"],  // Only one category
+});
+```
+
+### Want to see everything?
+
+```typescript
+setupConsoleLogger(page, {
+  captureAll: true,
+  verbose: true,
+});
+```
+
+## Related Documentation
+
+- `DEBUG_LOGS_GUIDE.md` - Detailed guide on log structure and flow
+- `DEBUG_LOGGING_SUMMARY.md` - Implementation overview
+- `e2e/helpers/console-logger.ts` - Console logging utility source code
