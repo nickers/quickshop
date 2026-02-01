@@ -39,7 +39,11 @@ export function EmailAuthForm({
 	const titleText = mode === "signin" ? "Logowanie" : "Rejestracja";
 
 	return (
-		<form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+		<form
+			onSubmit={handleSubmit(onSubmit)}
+			className="space-y-4"
+			data-testid="auth-email-form"
+		>
 			<div className="space-y-2">
 				<h2 className="text-2xl font-semibold text-center">{titleText}</h2>
 			</div>

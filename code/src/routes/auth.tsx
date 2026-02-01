@@ -132,7 +132,7 @@ function AuthView() {
 
 	return (
 		<div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 p-4">
-			<Card className="w-full max-w-md">
+			<Card className="w-full max-w-md" data-testid="auth-page">
 				<CardHeader className="space-y-1">
 					<CardTitle className="text-3xl font-bold text-center">
 						QuickShop
