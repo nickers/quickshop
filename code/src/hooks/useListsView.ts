@@ -83,23 +83,35 @@ export function useListsView() {
 		}
 	}, [listsQuery.data]);
 
-	// Mutation: Create new list
+	// Mutation: Create new list with optimistic update
 	const createListMutation = useMutation({
 		mutationFn: (data: CreateListDTO) => {
 			console.log("[useListsView] 🚀 createList mutationFn called", "| Name:", data.name, "| Timestamp:", new Date().toISOString());
 			return listsService.createList(data);
 		},
-		onSuccess: async (data) => {
-			console.log("[useListsView] ✅ createList onSuccess", "| ListId:", data.id, "| Name:", data.name, "| Timestamp:", new Date().toISOString());
+		onSuccess: (newList) => {
+			console.log("[useListsView] ✅ createList onSuccess", "| ListId:", newList.id, "| Name:", newList.name, "| Timestamp:", new Date().toISOString());
 			// Close dialog first (better UX - user sees immediate feedback)
 			setIsCreateDialogOpen(false);
-			// Force refetch to ensure new list is visible
-			// Using refetchQueries instead of invalidateQueries to guarantee immediate refetch
-			console.log("[useListsView] 🔄 Forcing refetch after create", "| Timestamp:", new Date().toISOString());
-			await queryClient.refetchQueries({ queryKey: listQueryKeys.all });
-			console.log("[useListsView] ✅ Refetch completed", "| Timestamp:", new Date().toISOString());
-			// Optional: Navigate to the newly created list
-			// navigate({ to: `/lists/${newList.id}` });
+			// Optimistically add the new list to the cache immediately
+			// This ensures the list is visible even if a background query is in-progress
+			queryClient.setQueryData<ListViewModel[]>(
+				listQueryKeys.all,
+				(old) => {
+					const newListViewModel: ListViewModel = {
+						...newList,
+						totalItems: 0,
+						boughtItems: 0,
+						isShared: false,
+						ownerName: undefined,
+					};
+					const updated = [newListViewModel, ...(old ?? [])];
+					console.log("[useListsView] ✨ Optimistic add applied", "| New count:", updated.length, "| Timestamp:", new Date().toISOString());
+					return updated;
+				},
+			);
+			// Also invalidate to ensure data is eventually consistent
+			queryClient.invalidateQueries({ queryKey: listQueryKeys.all });
 		},
 		onError: (error) => {
 			console.error("[useListsView] ❌ createList onError", "| Error:", error, "| Timestamp:", new Date().toISOString());
