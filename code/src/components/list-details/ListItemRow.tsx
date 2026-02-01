@@ -233,19 +233,20 @@ export function ListItemRow({
 		return (
 			<>
 				<div className="mb-2 rounded-lg overflow-hidden relative">
-					{/* Swipe action: red background + trash */}
+					{/* Swipe action: red background + trash – warstwa POD wierszem (z-0), odsłaniana przy swipe; opacity-100 żeby nic nie przeświecało */}
 					<div
-						className="absolute inset-y-0 right-0 w-24 flex items-center justify-center bg-destructive text-destructive-foreground"
+						className="absolute inset-y-0 right-0 z-0 w-24 flex items-center justify-center bg-destructive text-destructive-foreground opacity-100"
 						aria-hidden
 					>
 						<Trash2 className="h-6 w-6" />
 					</div>
+					{/* Wiersz: zawsze pełne krycie (solid bg), bez opacity – inaczej czerwone tło prześwieca */}
 					<div
 						className={cn(
-							"relative flex items-center gap-3 p-3 bg-card border rounded-lg transition-opacity transition-transform",
-							item.is_bought && "opacity-60 bg-muted/50",
-							isPending && "opacity-70",
-							isDragging && "opacity-80 shadow-md z-10",
+							"relative z-[1] flex items-center gap-3 p-3 border rounded-lg transition-opacity transition-transform",
+							item.is_bought ? "bg-muted border-muted-foreground/25" : "bg-card",
+							isPending && "ring-1 ring-muted-foreground/30",
+							isDragging && "shadow-md z-10",
 						)}
 						style={{ transform: `translateX(-${swipeOffset}px)` }}
 						data-testid="list-item-row"
@@ -317,7 +318,7 @@ export function ListItemRow({
 			<div
 				className={cn(
 					"flex items-center gap-3 p-3 bg-card border rounded-lg mb-2 transition-opacity",
-					item.is_bought && "opacity-60 bg-muted/50",
+					item.is_bought && "bg-muted/40 border-muted-foreground/25",
 					isPending && "opacity-70",
 					isDragging && "opacity-80 shadow-md z-10",
 				)}
