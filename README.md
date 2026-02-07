@@ -107,4 +107,4 @@ The project is currently in the active development phase, focusing on implementi
 
 ## License
 
-This project is private and proprietary.
+This project is licensed under [The Unlicense](LICENSE). See the [LICENSE](LICENSE) file for details.
