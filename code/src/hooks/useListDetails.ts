@@ -65,6 +65,11 @@ export function useListDetails(listId: string) {
 			return listsService.getListById(listId);
 		},
 		networkMode: "offlineFirst",
+		// List details are collaborative — always refetch from server on mount/navigation
+		// so that changes made by other users are visible immediately after page refresh.
+		staleTime: 0,
+		refetchOnWindowFocus: true,
+		refetchOnReconnect: true,
 	});
 
 	// Fetch List Items
@@ -75,6 +80,11 @@ export function useListDetails(listId: string) {
 			return listItemsService.getItemsByListId(listId);
 		},
 		networkMode: "offlineFirst",
+		// List items are collaborative — always refetch from server on mount/navigation
+		// so that changes made by other users are visible immediately after page refresh.
+		staleTime: 0,
+		refetchOnWindowFocus: true,
+		refetchOnReconnect: true,
 	});
 
 	// Log items changes for debugging
