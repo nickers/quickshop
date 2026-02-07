@@ -1,5 +1,5 @@
-# Pull Request: lint + unit-test (one job) → status-comment.
-# status-comment runs only when lint-and-test succeeds.
+# Pull Request: lint + unit-test → build → deploy-preview (Cloudflare Pages) → status-comment with preview link.
+# status-comment runs only when lint-and-test and deploy-preview succeed.
 # See .cursor/rules/github-action.mdc for conventions.
 
 name: Pull Request
@@ -41,10 +41,60 @@ jobs:
           path: ${{ env.WORKING_DIR }}/coverage/coverage-summary.json
           retention-days: 1
 
+  build:
+    name: Build for preview
+    runs-on: ubuntu-latest
+    needs: [lint-and-test]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node and npm
+        uses: ./.github/actions/setup-node-npm
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          working-directory: ${{ env.WORKING_DIR }}
+
+      - name: Build
+        run: npm run build
+        working-directory: ${{ env.WORKING_DIR }}
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: ${{ env.WORKING_DIR }}/dist
+          retention-days: 1
+
+  deploy-preview:
+    name: Deploy preview to Cloudflare Pages
+    runs-on: ubuntu-latest
+    needs: [build]
+    # probably should be a different environment ¯\_(ツ)_/¯
+    environment: Production
+    permissions:
+      contents: read
+      deployments: write
+    outputs:
+      deployment-url: ${{ steps.cloudflare_deploy.outputs.deployment-url }}
+    steps:
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+
+      - name: Deploy to Cloudflare Pages (preview)
+        id: cloudflare_deploy
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy . --project-name=${{ vars.CLOUDFLARE_PAGES_PROJECT_NAME }} --branch=pr-${{ github.event.pull_request.number }}
+
   status-comment:
     name: PR status comment
     runs-on: ubuntu-latest
-    needs: [lint-and-test]
+    needs: [lint-and-test, deploy-preview]
     permissions:
       contents: read
       pull-requests: write
@@ -57,6 +107,8 @@ jobs:
 
       - name: Comment PR with status
         uses: actions/github-script@v8
+        env:
+          PREVIEW_URL: ${{ needs.deploy-preview.outputs.deployment-url }}
         with:
           script: |
             const fs = require('fs');
@@ -79,6 +131,9 @@ jobs:
             } catch (e) {
               coverageBody = 'Coverage summary not available.';
             }
+            const previewSection = process.env.PREVIEW_URL
+              ? `\n### Preview\n- **URL:** [${process.env.PREVIEW_URL}](${process.env.PREVIEW_URL})\n`
+              : '';
             const body = `## Pull Request CI - All checks passed
 
             ### Lint
@@ -89,6 +144,7 @@ jobs:
 
             ### Coverage
             ${coverageBody}
+            ${previewSection}
             `;
             const pr = context.payload.pull_request;
             if (!pr) return;
