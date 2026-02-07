@@ -1,7 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { supabaseClient } from "@/db/supabase.client";
+import { useRealtimeSubscription } from "@/hooks/useRealtimeSubscription";
 import { listItemsService } from "@/services/items.service";
 import { listsService } from "@/services/lists.service";
 import type { CreateListDTO, ListViewModel } from "@/types/domain.types";
@@ -39,7 +40,11 @@ export function useListsView() {
 	const listsQuery = useQuery({
 		queryKey: listQueryKeys.all,
 		queryFn: async (): Promise<ListViewModel[]> => {
-			console.log("[useListsView] 🔵 listsQuery START", "| Timestamp:", new Date().toISOString());
+			console.log(
+				"[useListsView] 🔵 listsQuery START",
+				"| Timestamp:",
+				new Date().toISOString(),
+			);
 			const lists = await listsService.getAllLists();
 			console.log("[useListsView] 📋 Fetched lists:", lists.length);
 
@@ -56,7 +61,10 @@ export function useListsView() {
 							ownerName: undefined, // TODO: Implement owner name fetching with join
 						} as ListViewModel;
 					} catch (error) {
-						console.error(`[useListsView] Failed to fetch items for list ${list.id}:`, error);
+						console.error(
+							`[useListsView] Failed to fetch items for list ${list.id}:`,
+							error,
+						);
 						// Return list with zero counts if fetching items fails
 						return {
 							...list,
@@ -69,7 +77,13 @@ export function useListsView() {
 				}),
 			);
 
-			console.log("[useListsView] ✅ listsQuery SUCCESS", "| Total lists:", listsWithCounts.length, "| Timestamp:", new Date().toISOString());
+			console.log(
+				"[useListsView] ✅ listsQuery SUCCESS",
+				"| Total lists:",
+				listsWithCounts.length,
+				"| Timestamp:",
+				new Date().toISOString(),
+			);
 			return listsWithCounts;
 		},
 		staleTime: 30000, // 30 seconds
@@ -79,42 +93,73 @@ export function useListsView() {
 	// Log lists state changes for debugging
 	useEffect(() => {
 		if (listsQuery.data) {
-			console.log("[useListsView] 📊 Lists state changed", "| Count:", listsQuery.data.length, "| Lists:", listsQuery.data.map(l => l.name).join(", "), "| Timestamp:", new Date().toISOString());
+			console.log(
+				"[useListsView] 📊 Lists state changed",
+				"| Count:",
+				listsQuery.data.length,
+				"| Lists:",
+				listsQuery.data.map((l) => l.name).join(", "),
+				"| Timestamp:",
+				new Date().toISOString(),
+			);
 		}
 	}, [listsQuery.data]);
 
 	// Mutation: Create new list with optimistic update
 	const createListMutation = useMutation({
 		mutationFn: (data: CreateListDTO) => {
-			console.log("[useListsView] 🚀 createList mutationFn called", "| Name:", data.name, "| Timestamp:", new Date().toISOString());
+			console.log(
+				"[useListsView] 🚀 createList mutationFn called",
+				"| Name:",
+				data.name,
+				"| Timestamp:",
+				new Date().toISOString(),
+			);
 			return listsService.createList(data);
 		},
 		onSuccess: (newList) => {
-			console.log("[useListsView] ✅ createList onSuccess", "| ListId:", newList.id, "| Name:", newList.name, "| Timestamp:", new Date().toISOString());
+			console.log(
+				"[useListsView] ✅ createList onSuccess",
+				"| ListId:",
+				newList.id,
+				"| Name:",
+				newList.name,
+				"| Timestamp:",
+				new Date().toISOString(),
+			);
 			// Close dialog first (better UX - user sees immediate feedback)
 			setIsCreateDialogOpen(false);
 			// Optimistically add the new list to the cache immediately
 			// This ensures the list is visible even if a background query is in-progress
-			queryClient.setQueryData<ListViewModel[]>(
-				listQueryKeys.all,
-				(old) => {
-					const newListViewModel: ListViewModel = {
-						...newList,
-						totalItems: 0,
-						boughtItems: 0,
-						isShared: false,
-						ownerName: undefined,
-					};
-					const updated = [newListViewModel, ...(old ?? [])];
-					console.log("[useListsView] ✨ Optimistic add applied", "| New count:", updated.length, "| Timestamp:", new Date().toISOString());
-					return updated;
-				},
-			);
+			queryClient.setQueryData<ListViewModel[]>(listQueryKeys.all, (old) => {
+				const newListViewModel: ListViewModel = {
+					...newList,
+					totalItems: 0,
+					boughtItems: 0,
+					isShared: false,
+					ownerName: undefined,
+				};
+				const updated = [newListViewModel, ...(old ?? [])];
+				console.log(
+					"[useListsView] ✨ Optimistic add applied",
+					"| New count:",
+					updated.length,
+					"| Timestamp:",
+					new Date().toISOString(),
+				);
+				return updated;
+			});
 			// Also invalidate to ensure data is eventually consistent
 			queryClient.invalidateQueries({ queryKey: listQueryKeys.all });
 		},
 		onError: (error) => {
-			console.error("[useListsView] ❌ createList onError", "| Error:", error, "| Timestamp:", new Date().toISOString());
+			console.error(
+				"[useListsView] ❌ createList onError",
+				"| Error:",
+				error,
+				"| Timestamp:",
+				new Date().toISOString(),
+			);
 			// Error handling will be done in the component
 		},
 	});
@@ -122,11 +167,23 @@ export function useListsView() {
 	// Mutation: Delete list with optimistic updates
 	const deleteListMutation = useMutation({
 		mutationFn: (listId: string) => {
-			console.log("[useListsView] 🚀 deleteList mutationFn called", "| ListId:", listId, "| Timestamp:", new Date().toISOString());
+			console.log(
+				"[useListsView] 🚀 deleteList mutationFn called",
+				"| ListId:",
+				listId,
+				"| Timestamp:",
+				new Date().toISOString(),
+			);
 			return listsService.deleteList(listId);
 		},
 		onMutate: async (listId) => {
-			console.log("[useListsView] ⏸️ deleteList onMutate", "| ListId:", listId, "| Timestamp:", new Date().toISOString());
+			console.log(
+				"[useListsView] ⏸️ deleteList onMutate",
+				"| ListId:",
+				listId,
+				"| Timestamp:",
+				new Date().toISOString(),
+			);
 			// Cancel any outgoing refetches
 			await queryClient.cancelQueries({ queryKey: listQueryKeys.all });
 
@@ -134,31 +191,49 @@ export function useListsView() {
 			const previousLists = queryClient.getQueryData<ListViewModel[]>(
 				listQueryKeys.all,
 			);
-			console.log("[useListsView] 📊 Previous lists count:", previousLists?.length ?? 0);
+			console.log(
+				"[useListsView] 📊 Previous lists count:",
+				previousLists?.length ?? 0,
+			);
 
 			// Optimistically update to remove the list
-			queryClient.setQueryData<ListViewModel[]>(
-				listQueryKeys.all,
-				(old) => {
-					const filtered = old?.filter((list) => list.id !== listId) ?? [];
-					console.log("[useListsView] ✨ Optimistic delete applied", "| New count:", filtered.length);
-					return filtered;
-				},
-			);
+			queryClient.setQueryData<ListViewModel[]>(listQueryKeys.all, (old) => {
+				const filtered = old?.filter((list) => list.id !== listId) ?? [];
+				console.log(
+					"[useListsView] ✨ Optimistic delete applied",
+					"| New count:",
+					filtered.length,
+				);
+				return filtered;
+			});
 
 			// Return context with the snapshot
 			return { previousLists };
 		},
 		onError: (error, _listId, context) => {
-			console.error("[useListsView] ❌ deleteList onError", "| Error:", error, "| Timestamp:", new Date().toISOString());
+			console.error(
+				"[useListsView] ❌ deleteList onError",
+				"| Error:",
+				error,
+				"| Timestamp:",
+				new Date().toISOString(),
+			);
 			// Rollback on error
 			if (context?.previousLists) {
-				console.log("[useListsView] ⏪ Rollback to previous lists", "| Count:", context.previousLists.length);
+				console.log(
+					"[useListsView] ⏪ Rollback to previous lists",
+					"| Count:",
+					context.previousLists.length,
+				);
 				queryClient.setQueryData(listQueryKeys.all, context.previousLists);
 			}
 		},
 		onSettled: () => {
-			console.log("[useListsView] ✅ deleteList onSettled", "| Timestamp:", new Date().toISOString());
+			console.log(
+				"[useListsView] ✅ deleteList onSettled",
+				"| Timestamp:",
+				new Date().toISOString(),
+			);
 			// Refetch to sync with server
 			queryClient.invalidateQueries({ queryKey: listQueryKeys.all });
 		},
@@ -178,6 +253,31 @@ export function useListsView() {
 		// Navigate to list details (future implementation)
 		navigate({ to: `/lists/${listId}` });
 	};
+
+	// --- Realtime subscriptions ---
+	// Subscribe to changes on lists, list_items, and list_members tables.
+	// When another user creates/deletes/renames a list, shares it, or modifies items,
+	// the lists dashboard is automatically refreshed.
+	const realtimeQueryKeys = useMemo(() => [listQueryKeys.all], []);
+
+	const realtimeSubscriptions = useMemo(
+		() => [
+			{ table: "lists" as const },
+			{ table: "list_items" as const },
+			{ table: "list_members" as const },
+		],
+		[],
+	);
+
+	useRealtimeSubscription({
+		channelName: "lists-dashboard",
+		subscriptions: realtimeSubscriptions,
+		queryKeys: realtimeQueryKeys,
+		enabled: !!currentUserId,
+		// Use a slightly longer debounce for the dashboard since it refetches
+		// item counts for every list, which is heavier than a single list refetch.
+		debounceMs: 500,
+	});
 
 	return {
 		// Data
