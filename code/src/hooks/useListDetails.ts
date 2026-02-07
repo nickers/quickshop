@@ -1,8 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import type { Database } from "@/db/database.types";
 import { historyQueryKeys } from "@/hooks/useHistory";
 import { listQueryKeys } from "@/hooks/useListsView";
+import { useRealtimeSubscription } from "@/hooks/useRealtimeSubscription";
 import { findDuplicateOnList } from "@/lib/conflictUtils";
 import { listItemsService } from "@/services/items.service";
 import { listsService } from "@/services/lists.service";
@@ -61,7 +62,13 @@ export function useListDetails(listId: string) {
 	} = useQuery({
 		queryKey: ["list", listId],
 		queryFn: () => {
-			console.log("[useListDetails] 🔵 list query START", "| ListId:", listId, "| Timestamp:", new Date().toISOString());
+			console.log(
+				"[useListDetails] 🔵 list query START",
+				"| ListId:",
+				listId,
+				"| Timestamp:",
+				new Date().toISOString(),
+			);
 			return listsService.getListById(listId);
 		},
 		networkMode: "offlineFirst",
@@ -76,7 +83,13 @@ export function useListDetails(listId: string) {
 	const { data: items = [], isLoading: isItemsLoading } = useQuery({
 		queryKey: ["list-items", listId],
 		queryFn: () => {
-			console.log("[useListDetails] 🔵 list-items query START", "| ListId:", listId, "| Timestamp:", new Date().toISOString());
+			console.log(
+				"[useListDetails] 🔵 list-items query START",
+				"| ListId:",
+				listId,
+				"| Timestamp:",
+				new Date().toISOString(),
+			);
 			return listItemsService.getItemsByListId(listId);
 		},
 		networkMode: "offlineFirst",
@@ -89,7 +102,15 @@ export function useListDetails(listId: string) {
 
 	// Log items changes for debugging
 	useEffect(() => {
-		console.log("[useListDetails] 📊 Items state changed", "| Count:", items.length, "| Items:", items.map(i => i.name).join(", "), "| Timestamp:", new Date().toISOString());
+		console.log(
+			"[useListDetails] 📊 Items state changed",
+			"| Count:",
+			items.length,
+			"| Items:",
+			items.map((i) => i.name).join(", "),
+			"| Timestamp:",
+			new Date().toISOString(),
+		);
 	}, [items]);
 
 	// Derived state
@@ -102,21 +123,40 @@ export function useListDetails(listId: string) {
 		// Add scope to ensure mutations for this list run sequentially
 		scope: { id: `list-${listId}` },
 		mutationFn: ({ data }: { type: "create"; data: CreateListItemDTO }) => {
-			console.log("[useListDetails] 🚀 CREATE mutationFn called", "| Item:", data.name, "| ListId:", listId, "| Timestamp:", new Date().toISOString());
+			console.log(
+				"[useListDetails] 🚀 CREATE mutationFn called",
+				"| Item:",
+				data.name,
+				"| ListId:",
+				listId,
+				"| Timestamp:",
+				new Date().toISOString(),
+			);
 			return listItemsService.createItem(data);
 		},
 		networkMode: "offlineFirst",
 		onMutate: async (variables) => {
 			const newItem = variables.data;
 			const optimisticId = crypto.randomUUID();
-			console.log("[useListDetails] ⏸️ CREATE onMutate - pausing queries", "| OptimisticId:", optimisticId, "| Item:", newItem.name, "| Timestamp:", new Date().toISOString());
-			
+			console.log(
+				"[useListDetails] ⏸️ CREATE onMutate - pausing queries",
+				"| OptimisticId:",
+				optimisticId,
+				"| Item:",
+				newItem.name,
+				"| Timestamp:",
+				new Date().toISOString(),
+			);
+
 			await queryClient.cancelQueries({ queryKey: ["list-items", listId] });
 			const previousItems = queryClient.getQueryData<ListItem[]>([
 				"list-items",
 				listId,
 			]);
-			console.log("[useListDetails] 📊 Previous items count:", previousItems?.length ?? 0);
+			console.log(
+				"[useListDetails] 📊 Previous items count:",
+				previousItems?.length ?? 0,
+			);
 
 			queryClient.setQueryData<ListItem[]>(["list-items", listId], (old) => {
 				const optimisticItem: ListItem = {
@@ -131,29 +171,65 @@ export function useListDetails(listId: string) {
 					updated_at: new Date().toISOString(),
 				};
 				const newData = old ? [...old, optimisticItem] : [optimisticItem];
-				console.log("[useListDetails] ✨ Optimistic update applied", "| New count:", newData.length);
+				console.log(
+					"[useListDetails] ✨ Optimistic update applied",
+					"| New count:",
+					newData.length,
+				);
 				return newData;
 			});
 
 			setPendingIds((prev) => new Set(prev).add(optimisticId));
-			console.log("[useListDetails] ⏳ Added to pendingIds", "| OptimisticId:", optimisticId);
+			console.log(
+				"[useListDetails] ⏳ Added to pendingIds",
+				"| OptimisticId:",
+				optimisticId,
+			);
 			return { previousItems, optimisticId };
 		},
 		onError: (err, _variables, context) => {
-			console.error("[useListDetails] ❌ CREATE onError", "| Error:", err, "| OptimisticId:", context?.optimisticId, "| Timestamp:", new Date().toISOString());
+			console.error(
+				"[useListDetails] ❌ CREATE onError",
+				"| Error:",
+				err,
+				"| OptimisticId:",
+				context?.optimisticId,
+				"| Timestamp:",
+				new Date().toISOString(),
+			);
 			setLastMutationError(err instanceof Error ? err : new Error(String(err)));
 			if (context?.previousItems && !isNetworkError(err)) {
-				console.log("[useListDetails] ⏪ Rollback to previous items", "| Count:", context.previousItems.length);
+				console.log(
+					"[useListDetails] ⏪ Rollback to previous items",
+					"| Count:",
+					context.previousItems.length,
+				);
 				queryClient.setQueryData(["list-items", listId], context.previousItems);
 			}
 		},
 		onSettled: (_data, _error, _variables, context) => {
-			console.log("[useListDetails] ✅ CREATE onSettled", "| OptimisticId:", context?.optimisticId, "| Data:", _data ? "present" : "null", "| Error:", _error ? "present" : "null", "| Timestamp:", new Date().toISOString());
+			console.log(
+				"[useListDetails] ✅ CREATE onSettled",
+				"| OptimisticId:",
+				context?.optimisticId,
+				"| Data:",
+				_data ? "present" : "null",
+				"| Error:",
+				_error ? "present" : "null",
+				"| Timestamp:",
+				new Date().toISOString(),
+			);
 			if (context?.optimisticId) {
 				setPendingIds((prev) => {
 					const next = new Set(prev);
 					next.delete(context.optimisticId);
-					console.log("[useListDetails] 🗑️ Removed from pendingIds", "| OptimisticId:", context.optimisticId, "| Remaining:", next.size);
+					console.log(
+						"[useListDetails] 🗑️ Removed from pendingIds",
+						"| OptimisticId:",
+						context.optimisticId,
+						"| Remaining:",
+						next.size,
+					);
 					return next;
 				});
 			}
@@ -165,14 +241,28 @@ export function useListDetails(listId: string) {
 		// Add scope to ensure mutations for this list run sequentially
 		scope: { id: `list-${listId}` },
 		mutationFn: ({ data }: { type: "update"; data: UpdateListItemDTO }) => {
-			console.log("[useListDetails] 🚀 UPDATE mutationFn called", "| ItemId:", data.id, "| Updates:", data, "| Timestamp:", new Date().toISOString());
+			console.log(
+				"[useListDetails] 🚀 UPDATE mutationFn called",
+				"| ItemId:",
+				data.id,
+				"| Updates:",
+				data,
+				"| Timestamp:",
+				new Date().toISOString(),
+			);
 			return listItemsService.updateItem(data);
 		},
 		networkMode: "offlineFirst",
 		onMutate: async (variables) => {
 			const updatedItem = variables.data;
-			console.log("[useListDetails] ⏸️ UPDATE onMutate - pausing queries", "| ItemId:", updatedItem.id, "| Timestamp:", new Date().toISOString());
-			
+			console.log(
+				"[useListDetails] ⏸️ UPDATE onMutate - pausing queries",
+				"| ItemId:",
+				updatedItem.id,
+				"| Timestamp:",
+				new Date().toISOString(),
+			);
+
 			await queryClient.cancelQueries({ queryKey: ["list-items", listId] });
 			const previousItems = queryClient.getQueryData<ListItem[]>([
 				"list-items",
@@ -183,29 +273,67 @@ export function useListDetails(listId: string) {
 				const updated = old?.map((item) =>
 					item.id === updatedItem.id ? { ...item, ...updatedItem } : item,
 				);
-				console.log("[useListDetails] ✨ Optimistic update applied", "| ItemId:", updatedItem.id, "| Count:", updated?.length ?? 0);
+				console.log(
+					"[useListDetails] ✨ Optimistic update applied",
+					"| ItemId:",
+					updatedItem.id,
+					"| Count:",
+					updated?.length ?? 0,
+				);
 				return updated;
 			});
 
 			setPendingIds((prev) => new Set(prev).add(updatedItem.id));
-			console.log("[useListDetails] ⏳ Added to pendingIds", "| ItemId:", updatedItem.id);
+			console.log(
+				"[useListDetails] ⏳ Added to pendingIds",
+				"| ItemId:",
+				updatedItem.id,
+			);
 			return { previousItems, itemId: updatedItem.id };
 		},
 		onError: (err, _variables, context) => {
-			console.error("[useListDetails] ❌ UPDATE onError", "| Error:", err, "| ItemId:", context?.itemId, "| Timestamp:", new Date().toISOString());
+			console.error(
+				"[useListDetails] ❌ UPDATE onError",
+				"| Error:",
+				err,
+				"| ItemId:",
+				context?.itemId,
+				"| Timestamp:",
+				new Date().toISOString(),
+			);
 			setLastMutationError(err instanceof Error ? err : new Error(String(err)));
 			if (context?.previousItems && !isNetworkError(err)) {
-				console.log("[useListDetails] ⏪ Rollback to previous items", "| Count:", context.previousItems.length);
+				console.log(
+					"[useListDetails] ⏪ Rollback to previous items",
+					"| Count:",
+					context.previousItems.length,
+				);
 				queryClient.setQueryData(["list-items", listId], context.previousItems);
 			}
 		},
 		onSettled: (_data, _error, _variables, context) => {
-			console.log("[useListDetails] ✅ UPDATE onSettled", "| ItemId:", context?.itemId, "| Data:", _data ? "present" : "null", "| Error:", _error ? "present" : "null", "| Timestamp:", new Date().toISOString());
+			console.log(
+				"[useListDetails] ✅ UPDATE onSettled",
+				"| ItemId:",
+				context?.itemId,
+				"| Data:",
+				_data ? "present" : "null",
+				"| Error:",
+				_error ? "present" : "null",
+				"| Timestamp:",
+				new Date().toISOString(),
+			);
 			if (context?.itemId) {
 				setPendingIds((prev) => {
 					const next = new Set(prev);
 					next.delete(context.itemId);
-					console.log("[useListDetails] 🗑️ Removed from pendingIds", "| ItemId:", context.itemId, "| Remaining:", next.size);
+					console.log(
+						"[useListDetails] 🗑️ Removed from pendingIds",
+						"| ItemId:",
+						context.itemId,
+						"| Remaining:",
+						next.size,
+					);
 					return next;
 				});
 			}
@@ -217,14 +345,26 @@ export function useListDetails(listId: string) {
 		// Add scope to ensure mutations for this list run sequentially
 		scope: { id: `list-${listId}` },
 		mutationFn: ({ itemId }: { type: "delete"; itemId: string }) => {
-			console.log("[useListDetails] 🚀 DELETE mutationFn called", "| ItemId:", itemId, "| Timestamp:", new Date().toISOString());
+			console.log(
+				"[useListDetails] 🚀 DELETE mutationFn called",
+				"| ItemId:",
+				itemId,
+				"| Timestamp:",
+				new Date().toISOString(),
+			);
 			return listItemsService.deleteItem(itemId);
 		},
 		networkMode: "offlineFirst",
 		onMutate: async (variables) => {
 			const itemId = variables.itemId;
-			console.log("[useListDetails] ⏸️ DELETE onMutate - pausing queries", "| ItemId:", itemId, "| Timestamp:", new Date().toISOString());
-			
+			console.log(
+				"[useListDetails] ⏸️ DELETE onMutate - pausing queries",
+				"| ItemId:",
+				itemId,
+				"| Timestamp:",
+				new Date().toISOString(),
+			);
+
 			await queryClient.cancelQueries({ queryKey: ["list-items", listId] });
 			const previousItems = queryClient.getQueryData<ListItem[]>([
 				"list-items",
@@ -233,29 +373,67 @@ export function useListDetails(listId: string) {
 
 			queryClient.setQueryData<ListItem[]>(["list-items", listId], (old) => {
 				const filtered = old?.filter((item) => item.id !== itemId);
-				console.log("[useListDetails] ✨ Optimistic delete applied", "| ItemId:", itemId, "| New count:", filtered?.length ?? 0);
+				console.log(
+					"[useListDetails] ✨ Optimistic delete applied",
+					"| ItemId:",
+					itemId,
+					"| New count:",
+					filtered?.length ?? 0,
+				);
 				return filtered;
 			});
 
 			setPendingIds((prev) => new Set(prev).add(itemId));
-			console.log("[useListDetails] ⏳ Added to pendingIds", "| ItemId:", itemId);
+			console.log(
+				"[useListDetails] ⏳ Added to pendingIds",
+				"| ItemId:",
+				itemId,
+			);
 			return { previousItems, itemId };
 		},
 		onError: (err, _variables, context) => {
-			console.error("[useListDetails] ❌ DELETE onError", "| Error:", err, "| ItemId:", context?.itemId, "| Timestamp:", new Date().toISOString());
+			console.error(
+				"[useListDetails] ❌ DELETE onError",
+				"| Error:",
+				err,
+				"| ItemId:",
+				context?.itemId,
+				"| Timestamp:",
+				new Date().toISOString(),
+			);
 			setLastMutationError(err instanceof Error ? err : new Error(String(err)));
 			if (context?.previousItems && !isNetworkError(err)) {
-				console.log("[useListDetails] ⏪ Rollback to previous items", "| Count:", context.previousItems.length);
+				console.log(
+					"[useListDetails] ⏪ Rollback to previous items",
+					"| Count:",
+					context.previousItems.length,
+				);
 				queryClient.setQueryData(["list-items", listId], context.previousItems);
 			}
 		},
 		onSettled: (_data, _error, _variables, context) => {
-			console.log("[useListDetails] ✅ DELETE onSettled", "| ItemId:", context?.itemId, "| Data:", _data ? "present" : "null", "| Error:", _error ? "present" : "null", "| Timestamp:", new Date().toISOString());
+			console.log(
+				"[useListDetails] ✅ DELETE onSettled",
+				"| ItemId:",
+				context?.itemId,
+				"| Data:",
+				_data ? "present" : "null",
+				"| Error:",
+				_error ? "present" : "null",
+				"| Timestamp:",
+				new Date().toISOString(),
+			);
 			if (context?.itemId) {
 				setPendingIds((prev) => {
 					const next = new Set(prev);
 					next.delete(context.itemId);
-					console.log("[useListDetails] 🗑️ Removed from pendingIds", "| ItemId:", context.itemId, "| Remaining:", next.size);
+					console.log(
+						"[useListDetails] 🗑️ Removed from pendingIds",
+						"| ItemId:",
+						context.itemId,
+						"| Remaining:",
+						next.size,
+					);
 					return next;
 				});
 			}
@@ -319,7 +497,13 @@ export function useListDetails(listId: string) {
 					: "synced";
 
 	const onSyncRetry = useCallback(() => {
-		console.log("[useListDetails] 🔄 onSyncRetry called", "| ListId:", listId, "| Timestamp:", new Date().toISOString());
+		console.log(
+			"[useListDetails] 🔄 onSyncRetry called",
+			"| ListId:",
+			listId,
+			"| Timestamp:",
+			new Date().toISOString(),
+		);
 		setLastMutationError(null);
 		queryClient.invalidateQueries({ queryKey: ["list-items", listId] });
 		queryClient.invalidateQueries({ queryKey: ["list", listId] });
@@ -327,10 +511,20 @@ export function useListDetails(listId: string) {
 
 	// Handlers
 	const handleAddItem = async (name: string) => {
-		console.log("[useListDetails] 📝 handleAddItem called", "| Name:", name, "| Timestamp:", new Date().toISOString());
+		console.log(
+			"[useListDetails] 📝 handleAddItem called",
+			"| Name:",
+			name,
+			"| Timestamp:",
+			new Date().toISOString(),
+		);
 		const existingItem = findDuplicateOnList(items, name);
 		if (existingItem) {
-			console.log("[useListDetails] ⚠️ Duplicate found, showing conflict dialog", "| Existing:", existingItem.name);
+			console.log(
+				"[useListDetails] ⚠️ Duplicate found, showing conflict dialog",
+				"| Existing:",
+				existingItem.name,
+			);
 			setConflictState({
 				isOpen: true,
 				conflictingItem: existingItem,
@@ -339,7 +533,11 @@ export function useListDetails(listId: string) {
 			return;
 		}
 
-		console.log("[useListDetails] ➕ Creating new item mutation", "| Name:", name);
+		console.log(
+			"[useListDetails] ➕ Creating new item mutation",
+			"| Name:",
+			name,
+		);
 		createItemMutation.mutate({
 			type: "create",
 			data: {
@@ -419,6 +617,36 @@ export function useListDetails(listId: string) {
 		queryClient.invalidateQueries({ queryKey: ["list", listId] });
 		queryClient.invalidateQueries({ queryKey: listQueryKeys.all });
 	};
+
+	// --- Realtime subscriptions ---
+	// Subscribe to changes on list_items for this specific list and on the list itself.
+	// When another user adds/edits/deletes items or renames the list, the cache is
+	// automatically invalidated and TanStack Query refetches fresh data.
+	const realtimeQueryKeys = useMemo(
+		() => [["list-items", listId], ["list", listId], listQueryKeys.all],
+		[listId],
+	);
+
+	const realtimeSubscriptions = useMemo(
+		() => [
+			{
+				table: "list_items" as const,
+				filter: `list_id=eq.${listId}`,
+			},
+			{
+				table: "lists" as const,
+				filter: `id=eq.${listId}`,
+			},
+		],
+		[listId],
+	);
+
+	useRealtimeSubscription({
+		channelName: `list-details-${listId}`,
+		subscriptions: realtimeSubscriptions,
+		queryKeys: realtimeQueryKeys,
+		enabled: !!listId,
+	});
 
 	return {
 		list,
