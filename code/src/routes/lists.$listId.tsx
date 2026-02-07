@@ -129,7 +129,7 @@ function ListDetailsPage() {
 
 	return (
 		<div
-			className="flex flex-col h-screen-safe relative bg-background touch-manipulation"
+			className="fixed inset-0 flex flex-col bg-background touch-manipulation z-10"
 			data-testid="list-details-page"
 		>
 			<div className="flex-shrink-0">
@@ -163,8 +163,8 @@ function ListDetailsPage() {
 					pendingIds={pendingIds}
 				/>
 
-				{/* Spacer dla sticky input bar - zapobiega zakrywaniu ostatnich itemów */}
-				<div className="h-24" aria-hidden="true" />
+				{/* Mały spacer na dole listy */}
+				<div className="h-4" aria-hidden="true" />
 			</div>
 
 			<div className="flex-shrink-0">

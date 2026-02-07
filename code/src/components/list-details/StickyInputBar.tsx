@@ -1,5 +1,5 @@
 import { Plus } from "lucide-react";
-import { useEffect, useId, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
@@ -15,6 +15,7 @@ export function StickyInputBar({
 }: StickyInputBarProps) {
 	const errorId = useId();
 	const inputRef = useRef<HTMLInputElement>(null);
+	const barRef = useRef<HTMLDivElement>(null);
 	const [value, setValue] = useState("");
 	const [showError, setShowError] = useState(false);
 
@@ -23,6 +24,13 @@ export function StickyInputBar({
 			inputRef.current?.focus();
 		}
 	}, [showError]);
+
+	// Ensure input bar stays visible when keyboard opens on Android
+	const handleFocus = useCallback(() => {
+		setTimeout(() => {
+			barRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+		}, 300);
+	}, []);
 
 	const handleSubmit = (e: React.FormEvent) => {
 		e.preventDefault();
@@ -35,10 +43,16 @@ export function StickyInputBar({
 		setShowError(false);
 		onAddItem(trimmed);
 		setValue("");
+		// Keep focus on input for rapid entry
+		inputRef.current?.focus();
 	};
 
 	return (
-		<div className="sticky bottom-0 left-0 right-0 bg-background border-t p-4 pb-safe-area-bottom" data-testid="sticky-input-bar">
+		<div
+			ref={barRef}
+			className="bg-background border-t p-4 pb-safe-area-bottom"
+			data-testid="sticky-input-bar"
+		>
 			<form
 				onSubmit={handleSubmit}
 				className="flex gap-2 max-w-screen-md mx-auto"
@@ -50,6 +64,7 @@ export function StickyInputBar({
 						setValue(e.target.value);
 						if (showError) setShowError(false);
 					}}
+					onFocus={handleFocus}
 					placeholder="Dodaj produkt..."
 					disabled={isSubmitting}
 					data-testid="add-item-input"
