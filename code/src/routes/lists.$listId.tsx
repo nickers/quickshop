@@ -1,5 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useId, useState } from "react";
+import { DetailsPageLayout } from "@/components/layout/DetailsPageLayout";
 import { ActiveItemsList } from "@/components/list-details/ActiveItemsList";
 import { CompletedItemsSection } from "@/components/list-details/CompletedItemsSection";
 import { ItemConflictDialog } from "@/components/list-details/ItemConflictDialog";
@@ -128,24 +129,23 @@ function ListDetailsPage() {
 	}
 
 	return (
-		<div
-			className="fixed inset-0 flex flex-col bg-background touch-manipulation z-10"
-			data-testid="list-details-page"
-		>
-			<div className="flex-shrink-0">
-				<ListDetailsHeader
-					list={list}
-					onShare={() => setShareModalOpen(true)}
-					onArchive={() => setArchiveConfirmOpen(true)}
-					onCreateSet={() => setCreateSetPlaceholderOpen(true)}
-					onRename={handleRenameOpen}
-					syncStatus={syncStatus}
-					syncError={syncError}
-					onSyncRetry={onSyncRetry}
-				/>
-			</div>
-
-			<div className="flex-1 overflow-y-auto min-h-0 overscroll-none scroll-smooth-ios">
+		<>
+			<DetailsPageLayout
+				testId="list-details-page"
+				header={
+					<ListDetailsHeader
+						list={list}
+						onShare={() => setShareModalOpen(true)}
+						onArchive={() => setArchiveConfirmOpen(true)}
+						onCreateSet={() => setCreateSetPlaceholderOpen(true)}
+						onRename={handleRenameOpen}
+						syncStatus={syncStatus}
+						syncError={syncError}
+						onSyncRetry={onSyncRetry}
+					/>
+				}
+				footer={<StickyInputBar onAddItem={addItem} isSubmitting={isSubmitting} />}
+			>
 				<ActiveItemsList
 					items={activeItems}
 					onToggle={toggleItem}
@@ -162,14 +162,7 @@ function ListDetailsPage() {
 					onUpdate={updateItemFields}
 					pendingIds={pendingIds}
 				/>
-
-				{/* Mały spacer na dole listy */}
-				<div className="h-4" aria-hidden="true" />
-			</div>
-
-			<div className="flex-shrink-0">
-				<StickyInputBar onAddItem={addItem} isSubmitting={isSubmitting} />
-			</div>
+			</DetailsPageLayout>
 
 			<ItemConflictDialog
 				isOpen={conflictState.isOpen}
@@ -271,6 +264,6 @@ function ListDetailsPage() {
 					</DialogFooter>
 				</DialogContent>
 			</Dialog>
-		</div>
+		</>
 	);
 }

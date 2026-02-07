@@ -23,7 +23,7 @@ export function SetDetailsHeader({
 	onDeleteSet,
 }: SetDetailsHeaderProps) {
 	return (
-		<div className="flex items-center justify-between p-4 border-b bg-background sticky top-0 z-10">
+		<div className="flex items-center justify-between p-4 border-b bg-background z-10">
 			<div className="flex items-center gap-3 min-w-0 flex-1">
 				<Link
 					to="/sets"

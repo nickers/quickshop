@@ -1,5 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useId, useState } from "react";
+import { DetailsPageLayout } from "@/components/layout/DetailsPageLayout";
 import { StickyInputBar } from "@/components/list-details/StickyInputBar";
 import { SetDetailsHeader } from "@/components/set-details/SetDetailsHeader";
 import { SetItemsList } from "@/components/set-details/SetItemsList";
@@ -112,23 +113,24 @@ function SetDetailsPage() {
 	}
 
 	return (
-		<div className="flex flex-col min-h-screen pb-20 relative bg-background">
-			<SetDetailsHeader
-				set={set}
-				onRename={handleRenameOpen}
-				onDeleteSet={() => setDeleteConfirmOpen(true)}
-			/>
-
-			<div className="flex-1 overflow-y-auto">
+		<>
+			<DetailsPageLayout
+				header={
+					<SetDetailsHeader
+						set={set}
+						onRename={handleRenameOpen}
+						onDeleteSet={() => setDeleteConfirmOpen(true)}
+					/>
+				}
+				footer={<StickyInputBar onAddItem={addItem} isSubmitting={isSubmitting} />}
+			>
 				<SetItemsList
 					items={items}
 					pendingIds={pendingIds}
 					onUpdate={updateItem}
 					onDelete={deleteItem}
 				/>
-			</div>
-
-			<StickyInputBar onAddItem={addItem} isSubmitting={isSubmitting} />
+			</DetailsPageLayout>
 
 			{/* Zmień nazwę zestawu */}
 			<Dialog open={renameDialogOpen} onOpenChange={setRenameDialogOpen}>
@@ -202,6 +204,6 @@ function SetDetailsPage() {
 					</DialogFooter>
 				</DialogContent>
 			</Dialog>
-		</div>
+		</>
 	);
 }
