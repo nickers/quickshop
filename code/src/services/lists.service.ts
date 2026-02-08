@@ -117,51 +117,30 @@ export class ListsService implements IListService {
 
 	async createList(data: CreateListDTO): Promise<ShoppingList> {
 		console.log("[ListsService] 🔵 createList START", "| Name:", data.name, "| Timestamp:", new Date().toISOString());
-		const {
-			data: { user },
-			error: authError,
-		} = await supabaseClient.auth.getUser();
-		if (authError || !user) {
-			console.error("[ListsService] ❌ createList AUTH ERROR", "| Error:", authError, "| Timestamp:", new Date().toISOString());
-			throw new Error("User must be logged in to create a list");
-		}
 
-		// Step 1: Create the list
-		const { data: newList, error } = await supabaseClient
-			.from("lists")
-			.insert({
-				...data,
-				created_by: user.id,
-			})
-			.select()
-			.single();
-
-		if (error) {
-			console.error("[ListsService] ❌ createList ERROR (list insert)", "| Error:", error, "| Timestamp:", new Date().toISOString());
-			throw error;
-		}
-		console.log("[ListsService] ✅ List created", "| ListId:", newList.id, "| Name:", newList.name, "| Timestamp:", new Date().toISOString());
-
-		// Step 2: Add the creator as a member of the list using the function
-		// We use invite_member_to_list instead of direct INSERT to avoid RLS recursion
-		console.log("[ListsService] 🔵 Adding creator as member", "| ListId:", newList.id, "| UserId:", user.id);
-		const { error: memberError } = await supabaseClient.rpc(
-			"invite_member_to_list",
-			{
-				p_list_id: newList.id,
-				p_user_id: user.id,
-			},
+		// Use SECURITY DEFINER RPC to atomically create the list and add the creator as a member.
+		// This bypasses RLS policies to avoid INSERT policy issues (error 42501)
+		// and ensures both operations happen in a single transaction.
+		const { data: newList, error } = await supabaseClient.rpc(
+			"create_list_with_member",
+			{ p_name: data.name },
 		);
 
-		if (memberError) {
-			// If adding member fails, we should probably delete the list
-			// to maintain consistency, but for now just throw the error
-			console.error("[ListsService] ❌ createList ERROR (member add)", "| Error:", memberError, "| Timestamp:", new Date().toISOString());
-			throw new Error("Failed to add user as list member. Please try again.");
+		if (error) {
+			console.error("[ListsService] ❌ createList ERROR", "| Error:", error, "| Timestamp:", new Date().toISOString());
+			throw error;
 		}
 
-		console.log("[ListsService] ✅ createList SUCCESS", "| ListId:", newList.id, "| Timestamp:", new Date().toISOString());
-		return newList;
+		if (!newList) {
+			console.error("[ListsService] ❌ createList ERROR (null result)", "| Timestamp:", new Date().toISOString());
+			throw new Error("Failed to create list. Please try again.");
+		}
+
+		// The RPC returns JSON, cast to ShoppingList
+		const list = newList as unknown as ShoppingList;
+
+		console.log("[ListsService] ✅ createList SUCCESS", "| ListId:", list.id, "| Name:", list.name, "| Timestamp:", new Date().toISOString());
+		return list;
 	}
 
 	async updateList(
