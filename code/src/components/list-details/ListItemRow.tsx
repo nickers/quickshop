@@ -1,4 +1,4 @@
-import { GripVertical, MoreVertical, Pencil, Trash2 } from "lucide-react";
+import { Check, GripVertical, MoreVertical, Pencil, Trash2 } from "lucide-react";
 import { useId, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -22,7 +22,7 @@ import { cn } from "@/lib/utils";
 import type { ListItem } from "@/types/domain.types";
 
 const LONG_PRESS_MS = 500;
-const SWIPE_DELETE_THRESHOLD_PX = 80;
+const SWIPE_ACTION_THRESHOLD_PX = 80;
 
 function useIsTouchDevice() {
 	const [isTouch] = useState(() =>
@@ -79,6 +79,7 @@ export function ListItemRow({
 	const [swipeOffset, setSwipeOffset] = useState(0);
 	const swipeStartX = useRef(0);
 	const swipeOffsetRef = useRef(0);
+	const isBought = item.is_bought ?? false;
 
 	const openEdit = () => {
 		setEditName(item.name);
@@ -132,8 +133,12 @@ export function ListItemRow({
 		const offset = swipeOffsetRef.current;
 		setSwipeOffset(0);
 		swipeOffsetRef.current = 0;
-		if (offset >= SWIPE_DELETE_THRESHOLD_PX) {
-			onDelete(item.id);
+		if (offset >= SWIPE_ACTION_THRESHOLD_PX) {
+			if (isBought) {
+				onDelete(item.id);
+			} else {
+				onToggle(item.id, true);
+			}
 		}
 	};
 
@@ -158,7 +163,7 @@ export function ListItemRow({
 	const rowContent = (
 		<>
 			<Checkbox
-				checked={item.is_bought ?? false}
+				checked={isBought}
 				onCheckedChange={(checked) => onToggle(item.id, checked === true)}
 			/>
 
@@ -184,7 +189,7 @@ export function ListItemRow({
 				<div
 					className={cn(
 						"font-medium truncate",
-						item.is_bought && "line-through text-muted-foreground",
+						isBought && "line-through text-muted-foreground",
 					)}
 				>
 					{item.name}
@@ -233,18 +238,27 @@ export function ListItemRow({
 		return (
 			<>
 				<div className="mb-2 rounded-lg overflow-hidden relative">
-					{/* Swipe action: red background + trash – warstwa POD wierszem (z-0), odsłaniana przy swipe; opacity-100 żeby nic nie przeświecało */}
+					{/* Swipe action: background + icon – warstwa POD wierszem (z-0), odsłaniana przy swipe; opacity-100 żeby nic nie przeświecało */}
 					<div
-						className="absolute inset-y-0 right-0 z-0 w-24 flex items-center justify-center bg-destructive text-destructive-foreground opacity-100"
+						className={cn(
+							"absolute inset-y-0 right-0 z-0 w-24 flex items-center justify-center opacity-100",
+							isBought
+								? "bg-destructive text-destructive-foreground"
+								: "bg-primary text-primary-foreground",
+						)}
 						aria-hidden
 					>
-						<Trash2 className="h-6 w-6" />
+						{isBought ? (
+							<Trash2 className="h-6 w-6" />
+						) : (
+							<Check className="h-6 w-6" />
+						)}
 					</div>
-					{/* Wiersz: zawsze pełne krycie (solid bg), bez opacity – inaczej czerwone tło prześwieca */}
+					{/* Wiersz: zawsze pełne krycie (solid bg), bez opacity – inaczej tło akcji prześwieca */}
 					<div
 						className={cn(
 							"relative z-[1] flex items-center gap-3 p-3 border rounded-lg transition-opacity transition-transform",
-							item.is_bought ? "bg-muted border-muted-foreground/25" : "bg-card",
+							isBought ? "bg-muted border-muted-foreground/25" : "bg-card",
 							isPending && "ring-1 ring-muted-foreground/30",
 							isDragging && "shadow-md z-10",
 						)}
@@ -318,7 +332,7 @@ export function ListItemRow({
 			<div
 				className={cn(
 					"flex items-center gap-3 p-3 bg-card border rounded-lg mb-2 transition-opacity",
-					item.is_bought && "bg-muted/40 border-muted-foreground/25",
+					isBought && "bg-muted/40 border-muted-foreground/25",
 					isPending && "opacity-70",
 					isDragging && "opacity-80 shadow-md z-10",
 				)}
